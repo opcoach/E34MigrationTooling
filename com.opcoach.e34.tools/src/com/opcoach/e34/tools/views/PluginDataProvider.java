@@ -48,14 +48,12 @@ import org.osgi.framework.FrameworkUtil;
  * 
  * @see ContextDataPart
  */
-public class PluginDataProvider extends ColumnLabelProvider implements
-		ITreeContentProvider {
+public class PluginDataProvider extends ColumnLabelProvider implements ITreeContentProvider
+{
 
 	private static final String NO_VALUE_COULD_BE_COMPUTED = "No value could be yet computed";
-	private static final Color COLOR_IF_FOUND = Display.getCurrent()
-			.getSystemColor(SWT.COLOR_BLUE);
-	private static final Color COLOR_IF_NOT_COMPUTED = Display.getCurrent()
-			.getSystemColor(SWT.COLOR_MAGENTA);
+	private static final Color COLOR_IF_FOUND = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
+	private static final Color COLOR_IF_NOT_COMPUTED = Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA);
 	private static final Object[] EMPTY_RESULT = new Object[0];
 	static final String LOCAL_VALUE_NODE = "Local values managed  by this context";
 	static final String INHERITED_INJECTED_VALUE_NODE = "Inherited values injected or updated using this context";
@@ -85,53 +83,56 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 	private IPluginModelBase plugin = null;
 
 	@Inject
-	public PluginDataProvider() {
+	public PluginDataProvider()
+	{
 		super();
 		initFonts();
 		initializeImageRegistry();
 	}
 
 	@Override
-	public void dispose() {
+	public void dispose()
+	{
 		imgReg = null;
 	}
 
 	@SuppressWarnings("restriction")
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
+	public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
+	{
 		// selectedContext = (newInput instanceof EclipseContext) ?
 		// (EclipseContext) newInput : null;
 	}
 
-	public Object[] getElements(Object inputElement) {
-		Collection<IExtensionPoint> result = new ArrayList<IExtensionPoint>();
-		for (IExtensionPoint ep : Platform.getExtensionRegistry()
-				.getExtensionPoints()) {
-			if (ep.getNamespaceIdentifier().equals("org.eclipse.ui"))
-				result.add(ep);
-		}
-		return result.toArray();
+	public Object[] getElements(Object inputElement)
+	{
+		return E4MigrationRegistry.getExtensionsToParse().toArray();
+		
 	}
 
 	@SuppressWarnings("restriction")
-	public Object[] getChildren(Object parentElement) {
+	public Object[] getChildren(Object parentElement)
+	{
 
-		if (parentElement instanceof IExtensionPoint) {
+		if (parentElement instanceof IExtensionPoint)
+		{
 
 			// Must search for elements defined in this extension point */
 			IExtensionPoint ep = (IExtensionPoint) parentElement;
-			ISchema schema = PDECore.getDefault().getSchemaRegistry()
-					.getSchema(ep.getUniqueIdentifier());
+			ISchema schema = PDECore.getDefault().getSchemaRegistry().getSchema(ep.getUniqueIdentifier());
 
 			ISchemaElement extensionElement = null;
-			for (ISchemaElement e : schema.getElements()) {
-				if ("extension".equals(e.getName())) {
+			for (ISchemaElement e : schema.getElements())
+			{
+				if ("extension".equals(e.getName()))
+				{
 					extensionElement = e;
 					break;
 				}
 			}
 			return schema.getCandidateChildren(extensionElement);
 
-		} else if (parentElement instanceof ISchemaElement) {
+		} else if (parentElement instanceof ISchemaElement)
+		{
 			/*
 			 * ISchemaElement e = (ISchemaElement) parentElement; return
 			 * e.getSchema().getCandidateChildren(e);
@@ -185,67 +186,73 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 		 */
 	}
 
-	public void setPlugin(IPluginModelBase p) {
+	public void setPlugin(IPluginModelBase p)
+	{
 		plugin = p;
 	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "restriction" })
-	public String getText(Object element) {
+	public String getText(Object element)
+	{
 
-		if (element instanceof IExtensionPoint) {
+		if (element instanceof IExtensionPoint)
+		{
 			IExtensionPoint ep = (IExtensionPoint) element;
 
-			if (plugin == null) {
+			if (plugin == null)
 				return ep.getUniqueIdentifier();
-			} else {
-
-				// count the number of extensions in plugin for this extension
-				// point
-				int count = 0;
-				for (IPluginExtension e : plugin.getExtensions().getExtensions()) {
-					if (e.getPoint().equals(ep.getUniqueIdentifier()))
-					    count++;
-				}
-				
-				return "" + count;
-			}
+			else
+				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(ep, plugin);
 		} else if (element instanceof ISchemaElement)
 		{
-			// Count nb of element having this name in all extensions of this plugin. 
 			ISchemaElement se = (ISchemaElement) element;
-			
 			if (plugin == null)
 				return se.getName();
-			
-			
-			String epId = se.getSchema().getQualifiedPointId();
-			
-			int count = 0;
-			for (IPluginExtension e : plugin.getExtensions(true).getExtensions()) {
-				// System.out.println("Comparing name of point in extension : '" + e.getPoint() + "' with ext point id : '" + epId + "'" );
+			else
+				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(se, plugin);
 
-				if (e.getPoint().equals(epId))
-				{
-					System.out.println("element found");
-					// We are in the extension, must find nb of elements inside.
-					for (IPluginObject po : e.getChildren())
-					{
-						System.out.println("Instance of po is " + po.getClass().getName()) ;
-						if (po instanceof PluginElement)
-						{
-							PluginElement pen = (PluginElement) po;
-							System.out.println("Comparing name of node : '" + pen.getName() + "' with shema elt name : '" + se.getName() + "'" );
-							if (pen.getName().equals(se.getName()))
-								count++;
-						}
-					}
-					
-				}
-			}
-			return "  " + count;
-			
 		}
+
+		/*
+		 * if (element instanceof IExtensionPoint) { IExtensionPoint ep =
+		 * (IExtensionPoint) element;
+		 * 
+		 * if (plugin == null) { return ep.getUniqueIdentifier(); } else {
+		 * 
+		 * // count the number of extensions in plugin for this extension //
+		 * point int count = 0; for (IPluginExtension e :
+		 * plugin.getExtensions().getExtensions()) { if
+		 * (e.getPoint().equals(ep.getUniqueIdentifier())) count++; }
+		 * 
+		 * return "" + count; } } else if (element instanceof ISchemaElement) {
+		 * // Count nb of element having this name in all extensions of this
+		 * plugin. ISchemaElement se = (ISchemaElement) element;
+		 * 
+		 * if (plugin == null) return se.getName();
+		 * 
+		 * 
+		 * String epId = se.getSchema().getQualifiedPointId();
+		 * 
+		 * int count = 0; for (IPluginExtension e :
+		 * plugin.getExtensions(true).getExtensions()) { //
+		 * System.out.println("Comparing name of point in extension : '" +
+		 * e.getPoint() + "' with ext point id : '" + epId + "'" );
+		 * 
+		 * if (e.getPoint().equals(epId)) { System.out.println("element found");
+		 * // We are in the extension, must find nb of elements inside. for
+		 * (IPluginObject po : e.getChildren()) {
+		 * System.out.println("Instance of po is " + po.getClass().getName()) ;
+		 * if (po instanceof PluginElement) { PluginElement pen =
+		 * (PluginElement) po; System.out.println("Comparing name of node : '" +
+		 * pen.getName() + "' with shema elt name : '" + se.getName() + "'" );
+		 * if (pen.getName().equals(se.getName())) count++; } }
+		 * 
+		 * } } return "  " + count;
+		 * 
+		 * }
+		 */
+
 		return super.getText(element);
 
 	}
@@ -253,28 +260,29 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 	private Color red = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
 
 	@Override
-	public Color getForeground(Object element) {
+	public Color getForeground(Object element)
+	{
 
 		return isDeprecated(element) ? red : null;
 	}
 
-	private boolean isDeprecated(Object element) {
+	private boolean isDeprecated(Object element)
+	{
 		boolean deprecated = false;
-		if (element instanceof IExtensionPoint) {
-			deprecated = PDECore
-					.getDefault()
-					.getSchemaRegistry()
-					.getSchema(
-							((IExtensionPoint) element).getUniqueIdentifier())
+		if (element instanceof IExtensionPoint)
+		{
+			deprecated = PDECore.getDefault().getSchemaRegistry().getSchema(((IExtensionPoint) element).getUniqueIdentifier())
 					.isDeperecated();
-		} else if (element instanceof ISchemaElement) {
+		} else if (element instanceof ISchemaElement)
+		{
 			deprecated = ((ISchemaElement) element).isDeprecated();
 		}
 		return deprecated;
 	}
 
 	/** Get the bold font for keys that are computed with ContextFunction */
-	public Font getFont(Object element) {
+	public Font getFont(Object element)
+	{
 		/*
 		 * return (element == LOCAL_VALUE_NODE || element ==
 		 * INHERITED_INJECTED_VALUE_NODE) ? boldFont : null;
@@ -286,7 +294,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 
 	@SuppressWarnings("restriction")
 	@Override
-	public Image getImage(Object element) {
+	public Image getImage(Object element)
+	{
 
 		/*
 		 * if (!displayKey) // No image in value column, only in key column
@@ -324,9 +333,11 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 
 	@SuppressWarnings("restriction")
 	@Override
-	public String getToolTipText(Object element) {
+	public String getToolTipText(Object element)
+	{
 
-		if (isDeprecated(element)) {
+		if (isDeprecated(element))
+		{
 			if (element instanceof IExtensionPoint)
 				return "Ce point d'extension est deprecated";
 			else if (element instanceof ISchemaElement)
@@ -363,17 +374,20 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 	}
 
 	@Override
-	public Image getToolTipImage(Object object) {
+	public Image getToolTipImage(Object object)
+	{
 		return getImage(object);
 	}
 
 	@Override
-	public int getToolTipStyle(Object object) {
+	public int getToolTipStyle(Object object)
+	{
 		return SWT.SHADOW_OUT;
 	}
 
 	@Override
-	public Object getParent(Object element) {
+	public Object getParent(Object element)
+	{
 		/*
 		 * if (element == LOCAL_VALUE_NODE || element ==
 		 * INHERITED_INJECTED_VALUE_NODE) return null;
@@ -385,38 +399,32 @@ public class PluginDataProvider extends ColumnLabelProvider implements
 
 	@SuppressWarnings("restriction")
 	@Override
-	public boolean hasChildren(Object element) {
+	public boolean hasChildren(Object element)
+	{
 
 		return element instanceof IExtensionPoint;
 
 	}
 
-	private void initializeImageRegistry() {
+	private void initializeImageRegistry()
+	{
 		Bundle b = FrameworkUtil.getBundle(this.getClass());
 		imgReg = new ImageRegistry();
 
-		imgReg.put(CONTEXT_FUNCTION_IMG_KEY, ImageDescriptor.createFromURL(b
-				.getEntry(CONTEXT_FUNCTION_IMG_KEY)));
-		imgReg.put(INJECT_IMG_KEY,
-				ImageDescriptor.createFromURL(b.getEntry(INJECT_IMG_KEY)));
-		imgReg.put(PUBLIC_METHOD_IMG_KEY, ImageDescriptor.createFromURL(b
-				.getEntry(PUBLIC_METHOD_IMG_KEY)));
-		imgReg.put(PUBLIC_FIELD_IMG_KEY,
-				ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
-		imgReg.put(PUBLIC_FIELD_IMG_KEY,
-				ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
-		imgReg.put(LOCAL_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b
-				.getEntry(LOCAL_VARIABLE_IMG_KEY)));
-		imgReg.put(VALUE_IN_CONTEXT_IMG_KEY, ImageDescriptor.createFromURL(b
-				.getEntry(VALUE_IN_CONTEXT_IMG_KEY)));
-		imgReg.put(INHERITED_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b
-				.getEntry(INHERITED_VARIABLE_IMG_KEY)));
+		imgReg.put(CONTEXT_FUNCTION_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(CONTEXT_FUNCTION_IMG_KEY)));
+		imgReg.put(INJECT_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(INJECT_IMG_KEY)));
+		imgReg.put(PUBLIC_METHOD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_METHOD_IMG_KEY)));
+		imgReg.put(PUBLIC_FIELD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
+		imgReg.put(PUBLIC_FIELD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
+		imgReg.put(LOCAL_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(LOCAL_VARIABLE_IMG_KEY)));
+		imgReg.put(VALUE_IN_CONTEXT_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(VALUE_IN_CONTEXT_IMG_KEY)));
+		imgReg.put(INHERITED_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(INHERITED_VARIABLE_IMG_KEY)));
 
 	}
 
-	private void initFonts() {
-		FontData[] fontData = Display.getCurrent().getSystemFont()
-				.getFontData();
+	private void initFonts()
+	{
+		FontData[] fontData = Display.getCurrent().getSystemFont().getFontData();
 		String fontName = fontData[0].getName();
 		FontRegistry registry = JFaceResources.getFontRegistry();
 		boldFont = registry.getBold(fontName);

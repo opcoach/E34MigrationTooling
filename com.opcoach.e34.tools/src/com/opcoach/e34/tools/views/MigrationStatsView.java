@@ -5,7 +5,11 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -23,22 +27,27 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.progress.UIJob;
 
-public class MigrationStatsView extends ViewPart implements ISelectionListener {
+public class MigrationStatsView extends ViewPart implements ISelectionListener
+{
 
-	public MigrationStatsView() {
+	public MigrationStatsView()
+	{
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	public void init(IViewSite site) throws PartInitException {
+	public void init(IViewSite site) throws PartInitException
+	{
 		// TODO Auto-generated method stub
 		super.init(site);
 		site.getPage().addSelectionListener(this);
 	}
 
 	@Override
-	public void dispose() {
+	public void dispose()
+	{
 		getSite().getPage().removeSelectionListener(this);
 		super.dispose();
 	}
@@ -47,7 +56,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
 	private TreeViewer tv;
 
 	@Override
-	public void createPartControl(Composite parent) {
+	public void createPartControl(Composite parent)
+	{
 
 		parent.setLayout(new GridLayout(1, false));
 
@@ -64,7 +74,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
 
 		// tv.setInput(a);
 		tv.setInput("Foo"); // getElements starts alone
-		
+
 		// Create the first column, containing extension points
 		TreeViewerColumn keyCol = new TreeViewerColumn(tv, SWT.NONE);
 		keyCol.getColumn().setWidth(300);
@@ -72,9 +82,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
 		PluginDataProvider labelProvider = new PluginDataProvider();
 		keyCol.setLabelProvider(labelProvider);
 		keyCol.getColumn().setToolTipText("Extension point in org.eclipse.ui to be migrated");
-		
-		
-		
 
 		createPluginColumns();
 
@@ -85,9 +92,11 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
 
 	}
 
-	private void createPluginColumns() {
+	private void createPluginColumns()
+	{
 		// Must reate only missing columns.
-		for (IPluginModelBase pm : selectedPlugins) {
+		for (IPluginModelBase pm : selectedPlugins)
+		{
 			// Create the second column for the value
 
 			// Add columns in the tree one column per selected plugin.
@@ -111,46 +120,50 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
 	}
 
 	@Override
-	public void setFocus() {
+	public void setFocus()
+	{
 		// TODO Auto-generated method stub
 
 	}
 
+	
+
 	@SuppressWarnings("restriction")
 	@Override
-	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		
+	public void selectionChanged(IWorkbenchPart part, ISelection selection)
+	{
+
 		if (selection.isEmpty())
-			return; 
-		
+			return;
+
 		// Try to find selected plugins in selection
 		if (selection instanceof IStructuredSelection)
 		{
-		   IStructuredSelection ss = (IStructuredSelection) selection;
-		   selectedPlugins.clear();
+			IStructuredSelection ss = (IStructuredSelection) selection;
+			selectedPlugins.clear();
 
-		   for (Iterator it = ss.iterator(); it.hasNext(); )
-		   {
-			   Object selected = it.next();
-			   IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
-			   if (proj != null)
-			   {
-				   IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
-				   if (m != null)
-				   {
-					   System.out.println("Selected plugin is : " + m.getBundleDescription().getName());
-					   selectedPlugins.add(m);
-				   }
-			   }
-		   }
-		   
-		   if (!selectedPlugins.isEmpty())
-		   {
-			   createPluginColumns();
-		   
-			   tv.refresh();
-		   }
-		   
+			for (Iterator it = ss.iterator(); it.hasNext();)
+			{
+				Object selected = it.next();
+				IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
+				if (proj != null)
+				{
+					IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
+					if (m != null)
+					{
+						System.out.println("Selected plugin is : " + m.getBundleDescription().getName());
+						selectedPlugins.add(m);
+					}
+				}
+			}
+
+			if (!selectedPlugins.isEmpty())
+			{
+				createPluginColumns();
+
+				tv.refresh();
+			}
+
 		}
 
 	}

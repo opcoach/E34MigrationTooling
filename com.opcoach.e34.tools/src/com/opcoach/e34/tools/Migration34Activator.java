@@ -43,21 +43,7 @@ public class Migration34Activator extends AbstractUIPlugin {
 
 	private void displayFeatures() {
 		
-		System.out.println("-------- start  activator -----");
-         IWorkspaceRoot ws = ResourcesPlugin.getWorkspace().getRoot();
-         
-         FeatureModelManager fmm = PDECore.getDefault().getFeatureModelManager();
-         
-         for (IProject p : ws.getProjects())
-         {
-        	 IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(p);
-        	 IFeatureModel fm = (IFeatureModel) fmm.getFeatureModel(p);
-        	 IFeature f = (IFeature) (Platform.getAdapterManager().getAdapter(p, IFeature.class));
-        	 IFeatureInfo fi = (IFeatureInfo) (Platform.getAdapterManager().getAdapter(p, IFeatureInfo.class));
-        	 System.out.println("Project : " + p.getName() + " Model is " + ((m == null) ? "null" : m.getClass().toString()));
-        	 
-         }
- 		System.out.println("-------- end in activator -----");
+	
       
 	}
 
