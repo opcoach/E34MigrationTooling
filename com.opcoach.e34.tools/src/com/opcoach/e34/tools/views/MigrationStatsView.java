@@ -2,35 +2,44 @@ package com.opcoach.e34.tools.views;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.progress.UIJob;
 
 public class MigrationStatsView extends ViewPart implements ISelectionListener
 {
+
+	private MigrationDataComparator comparator;
+
+	private Map<IPluginModelBase, TreeViewerColumn> columnsCache = new HashMap<IPluginModelBase, TreeViewerColumn>();
 
 	public MigrationStatsView()
 	{
@@ -52,7 +61,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		super.dispose();
 	}
 
-	private Collection<IPluginModelBase> selectedPlugins = new ArrayList<IPluginModelBase>();
+	private Collection<IPluginModelBase> displayedPlugins = Collections.EMPTY_LIST;
 	private TreeViewer tv;
 
 	@Override
@@ -60,6 +69,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 
 		parent.setLayout(new GridLayout(1, false));
+
+		createDashBoard(parent);
 
 		tv = new TreeViewer(parent);
 		PluginDataProvider provider = new PluginDataProvider();
@@ -76,14 +87,15 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		tv.setInput("Foo"); // getElements starts alone
 
 		// Create the first column, containing extension points
-		TreeViewerColumn keyCol = new TreeViewerColumn(tv, SWT.NONE);
-		keyCol.getColumn().setWidth(300);
-		keyCol.getColumn().setText("Extension Points");
+		TreeViewerColumn epCol = new TreeViewerColumn(tv, SWT.NONE);
+		epCol.getColumn().setWidth(300);
+		epCol.getColumn().setText("Extension Points");
 		PluginDataProvider labelProvider = new PluginDataProvider();
-		keyCol.setLabelProvider(labelProvider);
-		keyCol.getColumn().setToolTipText("Extension point in org.eclipse.ui to be migrated");
-
-		createPluginColumns();
+		epCol.setLabelProvider(labelProvider);
+		epCol.getColumn().setToolTipText("Extension point in org.eclipse.ui to be migrated");
+		epCol.getColumn().addSelectionListener(getHeaderSelectionAdapter(tv, epCol.getColumn(), 0, labelProvider));
+		comparator = new MigrationDataComparator(0, labelProvider);
+		tv.setComparator(comparator);
 
 		// Open all the tree
 		tv.expandAll();
@@ -92,31 +104,50 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	}
 
-	private void createPluginColumns()
+	private void createDashBoard(Composite parent)
 	{
-		// Must reate only missing columns.
-		for (IPluginModelBase pm : selectedPlugins)
-		{
-			// Create the second column for the value
+		// Create here a part with some different statistic information.
+		Composite dp = new Composite(parent, SWT.BORDER);
 
-			// Add columns in the tree one column per selected plugin.
-			// Create the first column for the key
-			TreeViewerColumn keyCol = new TreeViewerColumn(tv, SWT.NONE);
-			keyCol.getColumn().setWidth(300);
-			keyCol.getColumn().setText(pm.getBundleDescription().getName());
-			PluginDataProvider labelProvider = new PluginDataProvider();
+		dp.setLayout(new GridLayout(4, true));
 
-			labelProvider.setPlugin(pm);
-			;
-			keyCol.setLabelProvider(labelProvider);
-			keyCol.getColumn().setToolTipText("tooltip a definir");
-			/*
-			 * keyCol.getColumn().addSelectionListener(
-			 * getHeaderSelectionAdapter(tv, keyCol.getColumn(), 0,
-			 * keyLabelProvider));
-			 */
+		Label nbExtToMigrateTitle = new Label(dp, SWT.BORDER);
+		nbExtToMigrateTitle.setText("Nb of Extensions to migrate : ");
+		Label nbExtToMigrateValue = new Label(dp, SWT.BORDER);
+		nbExtToMigrateValue.setText("???");
 
-		}
+		Label nbDeprecatedExtToCleanTitle = new Label(dp, SWT.BORDER);
+		nbDeprecatedExtToCleanTitle.setText("Nb of Deprecated Extensions to fix : ");
+		Label nbDeprecatedExtToCleanValue = new Label(dp, SWT.BORDER);
+		nbDeprecatedExtToCleanValue.setText("???");
+
+		Label nbViewTitle = new Label(dp, SWT.BORDER);
+		nbViewTitle.setText("Nb of views to migrate : ");
+		Label nbViewValue = new Label(dp, SWT.BORDER);
+		nbViewValue.setText("???");
+
+		Label nbEditorTitle = new Label(dp, SWT.BORDER);
+		nbEditorTitle.setText("Nb of editors to migrate : ");
+		Label nbEditorValue = new Label(dp, SWT.BORDER);
+		nbEditorValue.setText("???");
+
+	}
+
+	private void createPluginColumns(IPluginModelBase pm)
+	{
+		// Add columns in the tree one column per selected plugin.
+		// Create the first column for the key
+		TreeViewerColumn col = new TreeViewerColumn(tv, SWT.NONE);
+		col.getColumn().setWidth(300);
+		col.getColumn().setText(pm.getBundleDescription().getName());
+		PluginDataProvider labelProvider = new PluginDataProvider();
+
+		labelProvider.setPlugin(pm);
+		col.setLabelProvider(labelProvider);
+		col.getColumn().setToolTipText("tooltip a definir");
+
+		columnsCache.put(pm, col);
+
 	}
 
 	@Override
@@ -125,8 +156,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		// TODO Auto-generated method stub
 
 	}
-
-	
 
 	@SuppressWarnings("restriction")
 	@Override
@@ -140,8 +169,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		if (selection instanceof IStructuredSelection)
 		{
 			IStructuredSelection ss = (IStructuredSelection) selection;
-			selectedPlugins.clear();
-
+			// selectedPlugins.clear();
+			Collection<IPluginModelBase> currentSelectedPlugins = new ArrayList<IPluginModelBase>();
 			for (Iterator it = ss.iterator(); it.hasNext();)
 			{
 				Object selected = it.next();
@@ -152,19 +181,126 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 					if (m != null)
 					{
 						System.out.println("Selected plugin is : " + m.getBundleDescription().getName());
-						selectedPlugins.add(m);
+						currentSelectedPlugins.add(m);
 					}
 				}
 			}
 
-			if (!selectedPlugins.isEmpty())
-			{
-				createPluginColumns();
+			mergeTableViewerColumns(currentSelectedPlugins);
 
-				tv.refresh();
-			}
+			tv.refresh();
 
 		}
 
+	}
+
+	/**
+	 * An entry comparator for the table, dealing with column index, keys and
+	 * values
+	 */
+	public class MigrationDataComparator extends ViewerComparator
+	{
+		private int columnIndex;
+		private int direction;
+		private ILabelProvider labelProvider;
+
+		public MigrationDataComparator(int columnIndex, ILabelProvider defaultLabelProvider)
+		{
+			this.columnIndex = columnIndex;
+			direction = SWT.UP;
+			labelProvider = defaultLabelProvider;
+		}
+
+		public int getDirection()
+		{
+			return direction;
+		}
+
+		/** Called when click on table header, reverse order */
+		public void setColumn(int column)
+		{
+			if (column == columnIndex)
+			{
+				// Same column as last sort; toggle the direction
+				direction = (direction == SWT.UP) ? SWT.DOWN : SWT.UP;
+			} else
+			{
+				// New column; do a descending sort
+				columnIndex = column;
+				direction = SWT.DOWN;
+			}
+		}
+
+		@Override
+		public int compare(Viewer viewer, Object e1, Object e2)
+		{
+			// Compare the text from label provider.
+			String lp1 = labelProvider.getText(e1);
+			String lp2 = labelProvider.getText(e2);
+			String s1 = lp1 == null ? "" : lp1.toLowerCase();
+			String s2 = lp2 == null ? "" : lp2.toLowerCase();
+			int rc = s1.compareTo(s2);
+			// If descending order, flip the direction
+			return (direction == SWT.DOWN) ? -rc : rc;
+		}
+
+		public void setLabelProvider(ILabelProvider textProvider)
+		{
+			labelProvider = textProvider;
+		}
+
+	}
+
+	private void mergeTableViewerColumns(Collection<IPluginModelBase> currentSelectedPlugins)
+	{
+		// Search for plugins to be added or removed
+		Collection<IPluginModelBase> toBeAdded = new ArrayList<IPluginModelBase>();
+		Collection<IPluginModelBase> toBeRemoved = new ArrayList<IPluginModelBase>();
+
+		for (IPluginModelBase p : currentSelectedPlugins)
+		{
+			if (!displayedPlugins.contains(p))
+				toBeAdded.add(p);
+		}
+
+		for (IPluginModelBase p : displayedPlugins)
+		{
+			if (!currentSelectedPlugins.contains(p))
+				toBeRemoved.add(p);
+		}
+
+		// Now remove and add columns in viewer..
+		for (IPluginModelBase p : toBeRemoved)
+		{
+			TreeViewerColumn tc = columnsCache.get(p);
+			if (tc != null)
+				tv.remove(tc);
+		}
+		
+		for (IPluginModelBase p : toBeAdded)
+		{
+			createPluginColumns(p);
+		}
+		displayedPlugins = currentSelectedPlugins;
+
+	}
+
+	private SelectionAdapter getHeaderSelectionAdapter(final TreeViewer viewer, final TreeColumn column, final int columnIndex,
+			final ILabelProvider textProvider)
+	{
+		SelectionAdapter selectionAdapter = new SelectionAdapter()
+			{
+				@Override
+				public void widgetSelected(SelectionEvent e)
+				{
+					viewer.setComparator(comparator);
+					comparator.setColumn(columnIndex);
+					comparator.setLabelProvider(textProvider);
+					viewer.getTree().setSortDirection(comparator.getDirection());
+					viewer.getTree().setSortColumn(column);
+					viewer.refresh();
+				}
+			};
+		return selectionAdapter;
 	}
 }

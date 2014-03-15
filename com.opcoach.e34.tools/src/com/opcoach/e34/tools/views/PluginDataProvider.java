@@ -64,13 +64,14 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	private static final String INJECTED_IN_METHOD = "Injected in method :";
 
 	// Image keys constants
-	private static final String PUBLIC_METHOD_IMG_KEY = "icons/methpub_obj.gif";
+	/*private static final String PUBLIC_METHOD_IMG_KEY = "icons/methpub_obj.gif";
 	private static final String PUBLIC_FIELD_IMG_KEY = "icons/field_public_obj.gif";
 	private static final String VALUE_IN_CONTEXT_IMG_KEY = "icons/valueincontext.gif";
 	private static final String INHERITED_VARIABLE_IMG_KEY = "icons/inher_co.gif";
 	private static final String LOCAL_VARIABLE_IMG_KEY = "icons/letter-l-icon.png";
 	private static final String CONTEXT_FUNCTION_IMG_KEY = "icons/contextfunction.gif";
-	private static final String INJECT_IMG_KEY = "icons/annotation_obj.gif";
+	private static final String INJECT_IMG_KEY = "icons/annotation_obj.gif"; */
+	private static final String IMG_DEPRECATED = "icons/deprecated.gif";
 
 	private ImageRegistry imgReg;
 
@@ -96,11 +97,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		imgReg = null;
 	}
 
-	@SuppressWarnings("restriction")
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
 	{
-		// selectedContext = (newInput instanceof EclipseContext) ?
-		// (EclipseContext) newInput : null;
 	}
 
 	public Object[] getElements(Object inputElement)
@@ -262,8 +260,15 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Color getForeground(Object element)
 	{
-
-		return isDeprecated(element) ? red : null;
+		// Get red if deprecated in first column, or if number is > 0 and deprecated
+		if (plugin == null)
+			return isDeprecated(element) ? red : null;
+		
+		// We are in a plugin column... must check if value is > 1 and deprecated
+		String txt = getText(element);
+		int val = Integer.parseInt(txt);
+		
+		return (val > 0 && isDeprecated(element)) ? red : null;
 	}
 
 	private boolean isDeprecated(Object element)
@@ -283,12 +288,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	/** Get the bold font for keys that are computed with ContextFunction */
 	public Font getFont(Object element)
 	{
-		/*
-		 * return (element == LOCAL_VALUE_NODE || element ==
-		 * INHERITED_INJECTED_VALUE_NODE) ? boldFont : null;
-		 */
-
-		return null;
+		return (plugin != null) && (getForeground(element) == red) ? boldFont : null;
+		
 
 	}
 
@@ -296,38 +297,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Image getImage(Object element)
 	{
+		return ((plugin == null) && isDeprecated(element)) ? imgReg.get(IMG_DEPRECATED) : null;
 
-		/*
-		 * if (!displayKey) // No image in value column, only in key column
-		 * return null;
-		 * 
-		 * if (element == LOCAL_VALUE_NODE) { return selectedContext == null ?
-		 * null : imgReg .get(LOCAL_VARIABLE_IMG_KEY);
-		 * 
-		 * } else if (element == INHERITED_INJECTED_VALUE_NODE) { return
-		 * selectedContext == null ? null : imgReg
-		 * .get(INHERITED_VARIABLE_IMG_KEY);
-		 * 
-		 * } else if (element instanceof Computation) { // For a computation :
-		 * display field, method or class in key column // and // value in value
-		 * column String txt = super.getText(element);
-		 * 
-		 * if (txt.contains("#")) return imgReg.get(PUBLIC_METHOD_IMG_KEY); else
-		 * if (txt.contains("@")) return imgReg.get(CONTEXT_FUNCTION_IMG_KEY);
-		 * else return imgReg.get(PUBLIC_FIELD_IMG_KEY);
-		 * 
-		 * } else if (element instanceof Map.Entry) { if
-		 * (isAContextKeyFunction(element)) return
-		 * imgReg.get(CONTEXT_FUNCTION_IMG_KEY); else { // It is a value. If it
-		 * is injected somewhere, display the // inject image return
-		 * hasChildren(element) ? imgReg.get(INJECT_IMG_KEY) :
-		 * imgReg.get(VALUE_IN_CONTEXT_IMG_KEY); }
-		 * 
-		 * }
-		 * 
-		 * return imgReg.get(INJECT_IMG_KEY);
-		 */
-		return null;
 
 	}
 
@@ -343,34 +314,11 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			else if (element instanceof ISchemaElement)
 				return "Cet element du schema est deprecated";
 		}
+		
+		
 
 		return "Tooltip à définir";
-		/*
-		 * if (element == LOCAL_VALUE_NODE) { return
-		 * "This part contains  values set in this context and then injected here or in children\n\n"
-		 * +
-		 * "If the value is injected using this context, you can expand the node to see where\n\n"
-		 * +
-		 * "If the value is injected using a child context you can find it in the second part for this child "
-		 * ; } else if (element == INHERITED_INJECTED_VALUE_NODE) { return
-		 * "This part contains the values injected or updated using this context, but initialized in a parent context\n\n"
-		 * + "Expand nodes to see where values are injected or updated"; } else
-		 * if (isAContextKeyFunction(element)) { String key = (String)
-		 * ((Map.Entry<?, ?>) element).getKey(); String fname = (String)
-		 * selectedContext
-		 * .localContextFunction().get(key).getClass().getCanonicalName();
-		 * 
-		 * return "This value is created by the Context Function : " + fname; }
-		 * else { if (hasChildren(element)) return
-		 * "Expand this node to see where this value is injected or updated";
-		 * else { if (element instanceof Map.Entry) return
-		 * "This value is set here but not injected using this context (look in children context)"
-		 * ; }
-		 * 
-		 * }
-		 * 
-		 * return super.getToolTipText(element);
-		 */
+		
 	}
 
 	@Override
@@ -411,15 +359,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		Bundle b = FrameworkUtil.getBundle(this.getClass());
 		imgReg = new ImageRegistry();
 
-		imgReg.put(CONTEXT_FUNCTION_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(CONTEXT_FUNCTION_IMG_KEY)));
-		imgReg.put(INJECT_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(INJECT_IMG_KEY)));
-		imgReg.put(PUBLIC_METHOD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_METHOD_IMG_KEY)));
-		imgReg.put(PUBLIC_FIELD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
-		imgReg.put(PUBLIC_FIELD_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(PUBLIC_FIELD_IMG_KEY)));
-		imgReg.put(LOCAL_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(LOCAL_VARIABLE_IMG_KEY)));
-		imgReg.put(VALUE_IN_CONTEXT_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(VALUE_IN_CONTEXT_IMG_KEY)));
-		imgReg.put(INHERITED_VARIABLE_IMG_KEY, ImageDescriptor.createFromURL(b.getEntry(INHERITED_VARIABLE_IMG_KEY)));
-
+		imgReg.put(IMG_DEPRECATED, ImageDescriptor.createFromURL(b.getEntry(IMG_DEPRECATED)));
+	
 	}
 
 	private void initFonts()
