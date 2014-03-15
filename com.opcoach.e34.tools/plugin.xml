@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="com.opcoach.e34.tools.category1"
+            name="E34 Migration tools">
+      </category>
+      <view
+            category="com.opcoach.e34.tools.category1"
+            class="com.opcoach.e34.tools.views.MigrationStatsView"
+            icon="icons/TreeViewerComposite.gif"
+            id="com.opcoach.e34.tools.e34Stats"
+            name="Migration Stats"
+            restorable="true">
+      </view>
+   </extension>
+
+</plugin>
