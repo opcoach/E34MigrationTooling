@@ -17,6 +17,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.xml.ws.Dispatch;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
@@ -75,6 +77,14 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private Collection<IPluginModelBase> displayedPlugins = Collections.EMPTY_LIST;
 	private TreeViewer tv;
 
+	private Label nbViewValue;
+
+	private Label nbEditorValue;
+
+	private Label nbPrefPageValue;
+
+	private Label nbPropPageValue;
+
 	@Override
 	public void createPartControl(Composite parent)
 	{
@@ -112,7 +122,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		tv.expandAll();
 
 		ColumnViewerToolTipSupport.enableFor(tv);
-
+		
 	}
 
 	private void createDashBoard(Composite parent)
@@ -134,14 +144,38 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 		Label nbViewTitle = new Label(dp, SWT.BORDER);
 		nbViewTitle.setText("Nb of views to migrate : ");
-		Label nbViewValue = new Label(dp, SWT.BORDER);
+		nbViewValue = new Label(dp, SWT.BORDER);
 		nbViewValue.setText("???");
 
 		Label nbEditorTitle = new Label(dp, SWT.BORDER);
 		nbEditorTitle.setText("Nb of editors to migrate : ");
-		Label nbEditorValue = new Label(dp, SWT.BORDER);
+		nbEditorValue = new Label(dp, SWT.BORDER);
 		nbEditorValue.setText("???");
 
+		Label nbPrefPageTitle = new Label(dp, SWT.BORDER);
+		nbPrefPageTitle.setText("Nb of preference pages to migrate : ");
+		nbPrefPageValue = new Label(dp, SWT.BORDER);
+		nbPrefPageValue.setText("???");
+
+		Label nbPropertyPageTitle = new Label(dp, SWT.BORDER);
+		nbPropertyPageTitle.setText("Nb of property pages to migrate : ");
+		nbPropPageValue = new Label(dp, SWT.BORDER);
+		nbPropPageValue.setText("???");
+		
+		updateDashboard();
+
+	}
+	
+	/**
+	 * Just update the contents of dashboard according to selected plugins
+	 */
+	private void updateDashboard()
+	{
+		E4MigrationRegistry reg = E4MigrationRegistry.getDefault();
+		nbViewValue.setText("" + reg.countNumberOfExtensions("views/view", displayedPlugins));
+		nbEditorValue.setText("" + reg.countNumberOfExtensions("editors/editor", displayedPlugins));
+		nbPrefPageValue.setText("" + reg.countNumberOfExtensions("preferencePages/page", displayedPlugins));
+		nbPropPageValue.setText("" + reg.countNumberOfExtensions("propertyPages/page", displayedPlugins));
 	}
 
 	private void createPluginColumns(IPluginModelBase pm)
@@ -190,7 +224,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 					IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
 					if (m != null)
 					{
-						System.out.println("Selected plugin is : " + m.getBundleDescription().getName());
 						currentSelectedPlugins.add(m);
 					}
 				}
@@ -199,6 +232,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			mergeTableViewerColumns(currentSelectedPlugins);
 
 			tv.refresh();
+			
+			updateDashboard();
 
 		}
 

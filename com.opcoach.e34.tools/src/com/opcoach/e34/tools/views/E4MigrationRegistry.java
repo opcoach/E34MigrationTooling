@@ -56,7 +56,7 @@ public class E4MigrationRegistry
 
 	public int getInstanceNumber(IExtensionPoint ep, IPluginModelBase plugin)
 	{
-		Integer result =  migrationData.get(getKey(ep, plugin));
+		Integer result = migrationData.get(getKey(ep, plugin));
 		if (result == null)
 		{
 			computeDataForPlugin(plugin);
@@ -67,11 +67,11 @@ public class E4MigrationRegistry
 
 	public int getInstanceNumber(ISchemaElement se, IPluginModelBase plugin)
 	{
-		Integer result =  migrationData.get(getKey(se, plugin));
+		Integer result = migrationData.get(getKey(se, plugin));
 		if (result == null)
 		{
 			computeDataForPlugin(plugin);
-			result = migrationData.get(getKey(se,plugin));
+			result = migrationData.get(getKey(se, plugin));
 		}
 		return result;
 	}
@@ -117,9 +117,36 @@ public class E4MigrationRegistry
 		return plugin.getBundleDescription().getName() + "/" + e.getSchema().getPointId() + "/" + e.getName();
 	}
 
+	private String getKey(IPluginModelBase plugin, String xpath)
+	{
+		return plugin.getBundleDescription().getName() + "/" + xpath;
+	}
+
 	public static boolean isComputed()
 	{
 		return computed;
+	}
+
+	/**
+	 * 
+	 * @param xpath
+	 *            the xpath to element for an extension point. For instance : "views/view"
+	 *            it must not be prefixed by org.eclipse.ui
+	 * @param plugins
+	 *            the list of plugins to compute
+	 * @return
+	 */
+	public int countNumberOfExtensions(String xpath, Collection<IPluginModelBase> plugins)
+	{
+		int result = 0;
+		for (IPluginModelBase p : plugins)
+		{
+			String key = getKey(p, xpath);
+			Integer i = migrationData.get(key);
+			if (i != null)
+				result += i;
+		}
+		return result;
 	}
 
 	private void computeDataForPlugin(IPluginModelBase plugin)
