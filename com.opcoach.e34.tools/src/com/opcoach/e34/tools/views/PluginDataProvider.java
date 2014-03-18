@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013 OPCoach.
+ * Copyright (c) 2014 OPCoach.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,13 +10,9 @@
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import javax.inject.Inject;
 
 import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -24,14 +20,10 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.pde.core.plugin.IPluginExtension;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.core.plugin.IPluginObject;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.ischema.ISchema;
 import org.eclipse.pde.internal.core.ischema.ISchemaElement;
-import org.eclipse.pde.internal.core.plugin.PluginElement;
-import org.eclipse.pde.internal.core.text.plugin.PluginElementNode;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -48,10 +40,11 @@ import org.osgi.framework.FrameworkUtil;
  * 
  * @see ContextDataPart
  */
+@SuppressWarnings("restriction")
 public class PluginDataProvider extends ColumnLabelProvider implements ITreeContentProvider
 {
 
-	private static final String NO_VALUE_COULD_BE_COMPUTED = "No value could be yet computed";
+	/*private static final String NO_VALUE_COULD_BE_COMPUTED = "No value could be yet computed";
 	private static final Color COLOR_IF_FOUND = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
 	private static final Color COLOR_IF_NOT_COMPUTED = Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA);
 	private static final Object[] EMPTY_RESULT = new Object[0];
@@ -62,6 +55,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	private static final String UPDATED_IN_CLASS = "Updated in class :";
 	private static final String INJECTED_IN_FIELD = "Injected in field :";
 	private static final String INJECTED_IN_METHOD = "Injected in method :";
+	*/
 
 	// Image keys constants
 	/*private static final String PUBLIC_METHOD_IMG_KEY = "icons/methpub_obj.gif";
@@ -107,7 +101,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		
 	}
 
-	@SuppressWarnings("restriction")
 	public Object[] getChildren(Object parentElement)
 	{
 
@@ -139,49 +132,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 		return null;
 
-		/*
-		 * if (selectedContext == null) return EMPTY_RESULT;
-		 * 
-		 * if (inputElement == LOCAL_VALUE_NODE) { Collection<Object> result =
-		 * new ArrayList<Object>();
-		 * 
-		 * result.addAll(selectedContext.localData().entrySet());
-		 * 
-		 * // For context function, we have to compute the value (if possible),
-		 * // and display it as a standard value Map<String, Object> cfValues =
-		 * new HashMap<String, Object>(); for (String key :
-		 * selectedContext.localContextFunction().keySet()) try {
-		 * cfValues.put(key, selectedContext.get(key)); } catch (Exception e) {
-		 * cfValues.put(key, NO_VALUE_COULD_BE_COMPUTED + " (Exception : " +
-		 * e.getClass().getName() + ")"); } result.addAll(cfValues.entrySet());
-		 * return result.toArray();
-		 * 
-		 * } else if (inputElement == INHERITED_INJECTED_VALUE_NODE) { // Search
-		 * for all values injected using this context but defined in // parent
-		 * Collection<Object> result = new ArrayList<Object>();
-		 * 
-		 * // Keep only the names that are not already displayed in local //
-		 * values Collection<String> localKeys =
-		 * selectedContext.localData().keySet(); Collection<String>
-		 * localContextFunctionsKeys = selectedContext
-		 * .localContextFunction().keySet();
-		 * 
-		 * if (selectedContext.getRawListenerNames() != null) { for (String name
-		 * : selectedContext.getRawListenerNames()) { if
-		 * (!localKeys.contains(name) &&
-		 * !localContextFunctionsKeys.contains(name)) result.add(name); } }
-		 * return result.size() == 0 ? new String[] { NO_VALUES_FOUND } :
-		 * result.toArray();
-		 * 
-		 * } else if (inputElement instanceof Map.Entry) { Set<Computation>
-		 * listeners = getListeners(inputElement); return (listeners == null) ?
-		 * null : listeners.toArray(); } else if (inputElement instanceof
-		 * String) { // This is the name of a raw listener in the inherited
-		 * injected // value part return selectedContext.getListeners((String)
-		 * inputElement) .toArray(); }
-		 * 
-		 * return EMPTY_RESULT;
-		 */
+	
 	}
 
 	public void setPlugin(IPluginModelBase p)
@@ -190,7 +141,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	}
 
 	@Override
-	@SuppressWarnings({ "unchecked", "restriction" })
 	public String getText(Object element)
 	{
 
@@ -212,44 +162,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 		}
 
-		/*
-		 * if (element instanceof IExtensionPoint) { IExtensionPoint ep =
-		 * (IExtensionPoint) element;
-		 * 
-		 * if (plugin == null) { return ep.getUniqueIdentifier(); } else {
-		 * 
-		 * // count the number of extensions in plugin for this extension //
-		 * point int count = 0; for (IPluginExtension e :
-		 * plugin.getExtensions().getExtensions()) { if
-		 * (e.getPoint().equals(ep.getUniqueIdentifier())) count++; }
-		 * 
-		 * return "" + count; } } else if (element instanceof ISchemaElement) {
-		 * // Count nb of element having this name in all extensions of this
-		 * plugin. ISchemaElement se = (ISchemaElement) element;
-		 * 
-		 * if (plugin == null) return se.getName();
-		 * 
-		 * 
-		 * String epId = se.getSchema().getQualifiedPointId();
-		 * 
-		 * int count = 0; for (IPluginExtension e :
-		 * plugin.getExtensions(true).getExtensions()) { //
-		 * System.out.println("Comparing name of point in extension : '" +
-		 * e.getPoint() + "' with ext point id : '" + epId + "'" );
-		 * 
-		 * if (e.getPoint().equals(epId)) { System.out.println("element found");
-		 * // We are in the extension, must find nb of elements inside. for
-		 * (IPluginObject po : e.getChildren()) {
-		 * System.out.println("Instance of po is " + po.getClass().getName()) ;
-		 * if (po instanceof PluginElement) { PluginElement pen =
-		 * (PluginElement) po; System.out.println("Comparing name of node : '" +
-		 * pen.getName() + "' with shema elt name : '" + se.getName() + "'" );
-		 * if (pen.getName().equals(se.getName())) count++; } }
-		 * 
-		 * } } return "  " + count;
-		 * 
-		 * }
-		 */
 
 		return super.getText(element);
 
@@ -293,7 +205,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	@SuppressWarnings("restriction")
 	@Override
 	public Image getImage(Object element)
 	{
@@ -302,7 +213,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	@SuppressWarnings("restriction")
 	@Override
 	public String getToolTipText(Object element)
 	{
@@ -310,14 +220,14 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		if (isDeprecated(element))
 		{
 			if (element instanceof IExtensionPoint)
-				return "Ce point d'extension est deprecated";
+				return "This extension point is deprecated";
 			else if (element instanceof ISchemaElement)
-				return "Cet element du schema est deprecated";
+				return "This element is deprecated";
 		}
 		
 		
 
-		return "Tooltip à définir";
+		return "Tooltip to be defined";
 		
 	}
 
@@ -345,7 +255,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	@SuppressWarnings("restriction")
 	@Override
 	public boolean hasChildren(Object element)
 	{

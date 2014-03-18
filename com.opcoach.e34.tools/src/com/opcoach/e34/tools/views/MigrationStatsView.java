@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2014 OPCoach.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     OPCoach - initial API and implementation
+ *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
 import java.util.ArrayList;
@@ -34,6 +44,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
+@SuppressWarnings("restriction")
 public class MigrationStatsView extends ViewPart implements ISelectionListener
 {
 
@@ -157,7 +168,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	}
 
-	@SuppressWarnings("restriction")
 	@Override
 	public void selectionChanged(IWorkbenchPart part, ISelection selection)
 	{
@@ -171,7 +181,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			IStructuredSelection ss = (IStructuredSelection) selection;
 			// selectedPlugins.clear();
 			Collection<IPluginModelBase> currentSelectedPlugins = new ArrayList<IPluginModelBase>();
-			for (Iterator it = ss.iterator(); it.hasNext();)
+			for (Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
 			{
 				Object selected = it.next();
 				IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
