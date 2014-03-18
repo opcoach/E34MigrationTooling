@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.xml.ws.Dispatch;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
@@ -34,10 +32,17 @@ import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.ISelectionListener;
@@ -77,14 +82,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private Collection<IPluginModelBase> displayedPlugins = Collections.EMPTY_LIST;
 	private TreeViewer tv;
 
-	private Label nbViewValue;
-
-	private Label nbEditorValue;
-
-	private Label nbPrefPageValue;
-
-	private Label nbPropPageValue;
-
 	@Override
 	public void createPartControl(Composite parent)
 	{
@@ -92,6 +89,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		parent.setLayout(new GridLayout(1, false));
 
 		createDashBoard(parent);
+		
+		// createToolBar(parent);
 
 		tv = new TreeViewer(parent);
 		PluginDataProvider provider = new PluginDataProvider();
@@ -122,17 +121,61 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		tv.expandAll();
 
 		ColumnViewerToolTipSupport.enableFor(tv);
+
+	}
+
+	private void createToolBar(Composite parent)
+	{
+		Composite trComp = new Composite(parent, SWT.NONE);
+		trComp.setBackground(Display.getCurrent().getSystemColor(
+				SWT.COLOR_GRAY));
+		trComp.setLayout(new RowLayout());
+	
+		ToolBar tb = new ToolBar(trComp,SWT.FLAT | SWT.LEFT);
+		RowData rd = new RowData();
+		tb.setLayoutData(rd);
+		
+		ToolItem ti = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
+		ti.setText(" 0 ");
+		ti.setToolTipText("Will filter empty lines");
+
+		ti.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				// filter empty lines...
+				System.out.println("Filter empty lines");			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// filter empty lines...
+				System.out.println("Filter empty lines");			}
+		});
+		
+		
+		ToolItem filterDeprecated = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
+		filterDeprecated.setText("Depr");
+		filterDeprecated.setToolTipText("Will filter deprecated extension points and elements");
+
+
+		filterDeprecated.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				// filter empty lines...
+				System.out.println("Filter deprecated");			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				// filter empty lines...
+				System.out.println("Filter deprecated");			}
+		});
 		
 	}
 
 	private void createDashBoard(Composite parent)
 	{
 		// Create here a part with some different statistic information.
-		Composite dp = new Composite(parent, SWT.BORDER);
+		Group dp = new Group(parent, SWT.BORDER);
+		dp.setText("Extension point counters");
 
 		dp.setLayout(new GridLayout(4, true));
 
-		Label nbExtToMigrateTitle = new Label(dp, SWT.BORDER);
+	/*	Label nbExtToMigrateTitle = new Label(dp, SWT.BORDER);
 		nbExtToMigrateTitle.setText("Nb of Extensions to migrate : ");
 		Label nbExtToMigrateValue = new Label(dp, SWT.BORDER);
 		nbExtToMigrateValue.setText("???");
@@ -141,41 +184,53 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		nbDeprecatedExtToCleanTitle.setText("Nb of Deprecated Extensions to fix : ");
 		Label nbDeprecatedExtToCleanValue = new Label(dp, SWT.BORDER);
 		nbDeprecatedExtToCleanValue.setText("???");
+		*/
 
-		Label nbViewTitle = new Label(dp, SWT.BORDER);
-		nbViewTitle.setText("Nb of views to migrate : ");
-		nbViewValue = new Label(dp, SWT.BORDER);
-		nbViewValue.setText("???");
+		createCounter(dp, "Views : ", "views/view");
+		createCounter(dp, "Editors : ", "editors/editor");	
+		createCounter(dp, "Preference pages : ", "preferencePages/page");
+		createCounter(dp, "Property pages : ", "propertyPages/page");
+		createCounter(dp, "Actions Sets : ", "actionsSets/actionSet");
+		createCounter(dp, "Commands : ", "commands/command");
+		createCounter(dp, "Handlers : ", "handlers/handler");
+		createCounter(dp, "Menus : ", "menus/menuContribution");
 
-		Label nbEditorTitle = new Label(dp, SWT.BORDER);
-		nbEditorTitle.setText("Nb of editors to migrate : ");
-		nbEditorValue = new Label(dp, SWT.BORDER);
-		nbEditorValue.setText("???");
-
-		Label nbPrefPageTitle = new Label(dp, SWT.BORDER);
-		nbPrefPageTitle.setText("Nb of preference pages to migrate : ");
-		nbPrefPageValue = new Label(dp, SWT.BORDER);
-		nbPrefPageValue.setText("???");
-
-		Label nbPropertyPageTitle = new Label(dp, SWT.BORDER);
-		nbPropertyPageTitle.setText("Nb of property pages to migrate : ");
-		nbPropPageValue = new Label(dp, SWT.BORDER);
-		nbPropPageValue.setText("???");
-		
 		updateDashboard();
 
 	}
 	
+	private Map<String, Label> countLabels = new HashMap<String, Label>();
+	
+	/**
+	 * Create the counter label and remember of it to compute it according to selection
+	 * @param parent
+	 * @param title : the title for the counter
+	 * @param xpath : the xpath to search for in the plugin xml : ex : views/view, editors/editor
+	 *                must not give the full extension point name, only simple name
+	 */
+	public void createCounter(Composite parent, String title, String xpath)
+	{
+		Label titleLabel = new Label(parent, SWT.BORDER);
+		titleLabel.setText(title);
+		titleLabel.setToolTipText("org.eclipse.ui."+xpath);
+		Label valueLabel = new Label(parent, SWT.BORDER);
+		valueLabel.setText("???");
+		countLabels.put(xpath, valueLabel);
+		
+	}
+
 	/**
 	 * Just update the contents of dashboard according to selected plugins
 	 */
 	private void updateDashboard()
 	{
 		E4MigrationRegistry reg = E4MigrationRegistry.getDefault();
-		nbViewValue.setText("" + reg.countNumberOfExtensions("views/view", displayedPlugins));
-		nbEditorValue.setText("" + reg.countNumberOfExtensions("editors/editor", displayedPlugins));
-		nbPrefPageValue.setText("" + reg.countNumberOfExtensions("preferencePages/page", displayedPlugins));
-		nbPropPageValue.setText("" + reg.countNumberOfExtensions("propertyPages/page", displayedPlugins));
+		
+		for (String xpath : countLabels.keySet())
+		{
+			int count = reg.countNumberOfExtensions(xpath, displayedPlugins);
+			countLabels.get(xpath).setText(""+count);
+		}
 	}
 
 	private void createPluginColumns(IPluginModelBase pm)
@@ -232,7 +287,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			mergeTableViewerColumns(currentSelectedPlugins);
 
 			tv.refresh();
-			
+
 			updateDashboard();
 
 		}
@@ -321,7 +376,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			if (tc != null)
 				tc.getColumn().dispose();
 		}
-		
+
 		for (IPluginModelBase p : toBeAdded)
 		{
 			createPluginColumns(p);
