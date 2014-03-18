@@ -284,7 +284,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		{
 			TreeViewerColumn tc = columnsCache.get(p);
 			if (tc != null)
-				tv.remove(tc);
+				tc.getColumn().dispose();
 		}
 		
 		for (IPluginModelBase p : toBeAdded)
