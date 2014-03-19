@@ -13,6 +13,9 @@ package com.opcoach.e34.tools.views;
 import javax.inject.Inject;
 
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -44,27 +47,35 @@ import org.osgi.framework.FrameworkUtil;
 public class PluginDataProvider extends ColumnLabelProvider implements ITreeContentProvider
 {
 
-	/*private static final String NO_VALUE_COULD_BE_COMPUTED = "No value could be yet computed";
-	private static final Color COLOR_IF_FOUND = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
-	private static final Color COLOR_IF_NOT_COMPUTED = Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA);
-	private static final Object[] EMPTY_RESULT = new Object[0];
-	static final String LOCAL_VALUE_NODE = "Local values managed  by this context";
-	static final String INHERITED_INJECTED_VALUE_NODE = "Inherited values injected or updated using this context";
-
-	private static final String NO_VALUES_FOUND = "No values found";
-	private static final String UPDATED_IN_CLASS = "Updated in class :";
-	private static final String INJECTED_IN_FIELD = "Injected in field :";
-	private static final String INJECTED_IN_METHOD = "Injected in method :";
-	*/
+	/*
+	 * private static final String NO_VALUE_COULD_BE_COMPUTED =
+	 * "No value could be yet computed"; private static final Color
+	 * COLOR_IF_FOUND = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
+	 * private static final Color COLOR_IF_NOT_COMPUTED =
+	 * Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA); private static
+	 * final Object[] EMPTY_RESULT = new Object[0]; static final String
+	 * LOCAL_VALUE_NODE = "Local values managed  by this context"; static final
+	 * String INHERITED_INJECTED_VALUE_NODE =
+	 * "Inherited values injected or updated using this context";
+	 * 
+	 * private static final String NO_VALUES_FOUND = "No values found"; private
+	 * static final String UPDATED_IN_CLASS = "Updated in class :"; private
+	 * static final String INJECTED_IN_FIELD = "Injected in field :"; private
+	 * static final String INJECTED_IN_METHOD = "Injected in method :";
+	 */
 
 	// Image keys constants
-	/*private static final String PUBLIC_METHOD_IMG_KEY = "icons/methpub_obj.gif";
-	private static final String PUBLIC_FIELD_IMG_KEY = "icons/field_public_obj.gif";
-	private static final String VALUE_IN_CONTEXT_IMG_KEY = "icons/valueincontext.gif";
-	private static final String INHERITED_VARIABLE_IMG_KEY = "icons/inher_co.gif";
-	private static final String LOCAL_VARIABLE_IMG_KEY = "icons/letter-l-icon.png";
-	private static final String CONTEXT_FUNCTION_IMG_KEY = "icons/contextfunction.gif";
-	private static final String INJECT_IMG_KEY = "icons/annotation_obj.gif"; */
+	/*
+	 * private static final String PUBLIC_METHOD_IMG_KEY =
+	 * "icons/methpub_obj.gif"; private static final String PUBLIC_FIELD_IMG_KEY
+	 * = "icons/field_public_obj.gif"; private static final String
+	 * VALUE_IN_CONTEXT_IMG_KEY = "icons/valueincontext.gif"; private static
+	 * final String INHERITED_VARIABLE_IMG_KEY = "icons/inher_co.gif"; private
+	 * static final String LOCAL_VARIABLE_IMG_KEY = "icons/letter-l-icon.png";
+	 * private static final String CONTEXT_FUNCTION_IMG_KEY =
+	 * "icons/contextfunction.gif"; private static final String INJECT_IMG_KEY =
+	 * "icons/annotation_obj.gif";
+	 */
 	private static final String IMG_DEPRECATED = "icons/deprecated.gif";
 
 	private ImageRegistry imgReg;
@@ -98,7 +109,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	public Object[] getElements(Object inputElement)
 	{
 		return E4MigrationRegistry.getExtensionsToParse().toArray();
-		
+
 	}
 
 	public Object[] getChildren(Object parentElement)
@@ -109,7 +120,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 			// Must search for elements defined in this extension point */
 			IExtensionPoint ep = (IExtensionPoint) parentElement;
-			ISchema schema = PDECore.getDefault().getSchemaRegistry().getSchema(ep.getUniqueIdentifier());
+			String uniqueIdentifier = ep.getUniqueIdentifier();
+			ISchema schema = getSchema(uniqueIdentifier);
 
 			ISchemaElement extensionElement = null;
 			for (ISchemaElement e : schema.getElements())
@@ -132,7 +144,20 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 		return null;
 
-	
+	}
+
+	private ISchema getSchema(String uniqueIdentifier)
+	{
+		ISchema s = PDECore.getDefault().getSchemaRegistry().getSchema(uniqueIdentifier);
+		if (s == null)
+		{
+			Bundle b = FrameworkUtil.getBundle(this.getClass());
+			IStatus st = new Status(IStatus.ERROR, b.getSymbolicName(), "Schema for " + uniqueIdentifier
+					+ " can not be found. Check if extension point schema are in the launch configuration");
+			Platform.getLog(b).log(st);
+			System.out.println(st.getMessage());
+		}
+		return s;
 	}
 
 	public void setPlugin(IPluginModelBase p)
@@ -162,7 +187,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 		}
 
-
 		return super.getText(element);
 
 	}
@@ -172,14 +196,16 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Color getForeground(Object element)
 	{
-		// Get red if deprecated in first column, or if number is > 0 and deprecated
+		// Get red if deprecated in first column, or if number is > 0 and
+		// deprecated
 		if (plugin == null)
 			return isDeprecated(element) ? red : null;
-		
-		// We are in a plugin column... must check if value is > 1 and deprecated
+
+		// We are in a plugin column... must check if value is > 1 and
+		// deprecated
 		String txt = getText(element);
 		int val = Integer.parseInt(txt);
-		
+
 		return (val > 0 && isDeprecated(element)) ? red : null;
 	}
 
@@ -188,8 +214,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		boolean deprecated = false;
 		if (element instanceof IExtensionPoint)
 		{
-			deprecated = PDECore.getDefault().getSchemaRegistry().getSchema(((IExtensionPoint) element).getUniqueIdentifier())
-					.isDeperecated();
+			String uniqueIdentifier = ((IExtensionPoint) element).getUniqueIdentifier();
+			deprecated = getSchema(uniqueIdentifier).isDeperecated();
 		} else if (element instanceof ISchemaElement)
 		{
 			deprecated = ((ISchemaElement) element).isDeprecated();
@@ -201,7 +227,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	public Font getFont(Object element)
 	{
 		return (plugin != null) && (getForeground(element) == red) ? boldFont : null;
-		
 
 	}
 
@@ -209,7 +234,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	public Image getImage(Object element)
 	{
 		return ((plugin == null) && isDeprecated(element)) ? imgReg.get(IMG_DEPRECATED) : null;
-
 
 	}
 
@@ -224,11 +248,9 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			else if (element instanceof ISchemaElement)
 				return "This element is deprecated";
 		}
-		
-		
 
 		return "Tooltip to be defined";
-		
+
 	}
 
 	@Override
@@ -269,7 +291,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		imgReg = new ImageRegistry();
 
 		imgReg.put(IMG_DEPRECATED, ImageDescriptor.createFromURL(b.getEntry(IMG_DEPRECATED)));
-	
+
 	}
 
 	private void initFonts()

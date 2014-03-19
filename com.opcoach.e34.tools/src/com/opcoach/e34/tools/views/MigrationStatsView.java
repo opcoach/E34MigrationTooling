@@ -85,13 +85,14 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	@Override
 	public void createPartControl(Composite parent)
 	{
-
-		parent.setLayout(new GridLayout(1, false));
-
+		parent.setLayout(new GridLayout(2, false));
+	
 		createDashBoard(parent);
+		createDeprecatedDashBoard(parent);
+
+		updateDashboard();
 		
 		// createToolBar(parent);
-
 		tv = new TreeViewer(parent);
 		PluginDataProvider provider = new PluginDataProvider();
 		tv.setContentProvider(provider);
@@ -101,9 +102,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		final Tree cTree = tv.getTree();
 		cTree.setHeaderVisible(true);
 		cTree.setLinesVisible(true);
-		cTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-
-		// tv.setInput(a);
+		cTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,2,1)); // hspan=2
 		tv.setInput("Foo"); // getElements starts alone
 
 		// Create the first column, containing extension points
@@ -112,7 +111,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		epCol.getColumn().setText("Extension Points");
 		PluginDataProvider labelProvider = new PluginDataProvider();
 		epCol.setLabelProvider(labelProvider);
-		epCol.getColumn().setToolTipText("Extension point in org.eclipse.ui to be migrated");
+		epCol.getColumn().setToolTipText("Extension points defined in org.eclipse.ui to be migrated");
 		epCol.getColumn().addSelectionListener(getHeaderSelectionAdapter(tv, epCol.getColumn(), 0, labelProvider));
 		comparator = new MigrationDataComparator(0, labelProvider);
 		tv.setComparator(comparator);
@@ -121,6 +120,9 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		tv.expandAll();
 
 		ColumnViewerToolTipSupport.enableFor(tv);
+		
+		parent.layout();
+
 
 	}
 
@@ -171,20 +173,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		// Create here a part with some different statistic information.
 		Group dp = new Group(parent, SWT.BORDER);
-		dp.setText("Extension point counters");
-
+		dp.setText("Extension points counters");
 		dp.setLayout(new GridLayout(4, true));
-
-	/*	Label nbExtToMigrateTitle = new Label(dp, SWT.BORDER);
-		nbExtToMigrateTitle.setText("Nb of Extensions to migrate : ");
-		Label nbExtToMigrateValue = new Label(dp, SWT.BORDER);
-		nbExtToMigrateValue.setText("???");
-
-		Label nbDeprecatedExtToCleanTitle = new Label(dp, SWT.BORDER);
-		nbDeprecatedExtToCleanTitle.setText("Nb of Deprecated Extensions to fix : ");
-		Label nbDeprecatedExtToCleanValue = new Label(dp, SWT.BORDER);
-		nbDeprecatedExtToCleanValue.setText("???");
-		*/
 
 		createCounter(dp, "Views : ", "views/view");
 		createCounter(dp, "Editors : ", "editors/editor");	
@@ -194,9 +184,28 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		createCounter(dp, "Commands : ", "commands/command");
 		createCounter(dp, "Handlers : ", "handlers/handler");
 		createCounter(dp, "Menus : ", "menus/menuContribution");
+		
+	}
+	
+	private void createDeprecatedDashBoard(Composite parent)
+	{
+		// Create here a part with some different statistic information.
+		Group dp = new Group(parent, SWT.BORDER);
+		dp.setText("Deprecated Extension points counters");
+		dp.setLayout(new GridLayout(4, true));
 
-		updateDashboard();
-
+		createCounter(dp, "Accelerator Config : ", "acceleratorConfigurations/acceleratorConfiguration");
+		createCounter(dp, "Accelerator Scopes : ", "acceleratorScopes/acceleratorScope");
+		createCounter(dp, "Accelerator Sets : ", "acceleratorScopes/acceleratorSet");
+		createCounter(dp, "Actions Definition : ", "actionsDefinitions/actionDefinition");
+		createCounter(dp, "Actions Set Part Association : ", "actionsSetPartAssociations/actionsSetPartAssociation");
+		createCounter(dp, "Actions Sets : ", "actionSets/actionSet");
+		createCounter(dp, "Editor Actions : ", "editorActions/editorContribution");
+		createCounter(dp, "View Actions : ", "viewActions/viewContribution");
+		createCounter(dp, "Popup Object contrib : ", "popupMenus/objectContribution");
+		createCounter(dp, "Popup Viewer contrib : ", "popupMenus/viewerContribution");
+		createCounter(dp, "Presentation Factories : ", "presentationFactories/factory");
+	
 	}
 	
 	private Map<String, Label> countLabels = new HashMap<String, Label>();
@@ -253,8 +262,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	@Override
 	public void setFocus()
 	{
-		// TODO Auto-generated method stub
-
+		tv.getControl().setFocus();
 	}
 
 	@Override
