@@ -10,8 +10,6 @@
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
-import javax.inject.Inject;
-
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -88,7 +86,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	 */
 	private IPluginModelBase plugin = null;
 
-	@Inject
 	public PluginDataProvider()
 	{
 		super();
