@@ -109,6 +109,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 			// Must search for elements defined in this extension point */
 			IExtensionPoint ep = (IExtensionPoint) parentElement;
+			String epUID = ep.getUniqueIdentifier();
 			ISchema schema = PDECore.getDefault().getSchemaRegistry().getSchema(ep.getUniqueIdentifier());
 
 			ISchemaElement extensionElement = null;
