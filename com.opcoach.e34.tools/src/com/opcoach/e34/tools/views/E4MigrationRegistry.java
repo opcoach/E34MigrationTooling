@@ -109,17 +109,25 @@ public class E4MigrationRegistry
 
 	private String getKey(IExtensionPoint ep, IPluginModelBase plugin)
 	{
-		return plugin.getBundleDescription().getName() + "/" + ep.getUniqueIdentifier();
+		return plugin.getBundleDescription().getName() + "/" + getXPath(ep);
 	}
 
 	private String getKey(ISchemaElement e, IPluginModelBase plugin)
 	{
-		return plugin.getBundleDescription().getName() + "/" + e.getSchema().getPointId() + "/" + e.getName();
+		return plugin.getBundleDescription().getName() + "/" + getXPath(e);
 	}
 
 	private String getKey(IPluginModelBase plugin, String xpath)
 	{
 		return plugin.getBundleDescription().getName() + "/" + xpath;
+	}
+	
+	public String getXPath(IExtensionPoint ep) {
+		return  ep.getUniqueIdentifier();
+	}
+	
+	public String  getXPath(ISchemaElement e) {
+		return e.getSchema().getPointId() + "/" + e.getName();
 	}
 
 	public static boolean isComputed()

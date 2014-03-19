@@ -58,6 +58,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private MigrationDataComparator comparator;
 
 	private Map<IPluginModelBase, TreeViewerColumn> columnsCache = new HashMap<IPluginModelBase, TreeViewerColumn>();
+	private TreeViewerColumn countCol=null;
 
 	public MigrationStatsView()
 	{
@@ -258,6 +259,24 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		columnsCache.put(pm, col);
 
 	}
+	
+	private void createCountDataColumns(Collection<IPluginModelBase> pmbs)
+	{
+		if (countCol!=null) {
+			countCol.getColumn().dispose();
+		}
+		// Add columns in the tree one column per selected plugin.
+		// Create the first column for the key
+		countCol = new TreeViewerColumn(tv, SWT.NONE);
+		countCol.getColumn().setWidth(300);
+		countCol.getColumn().setText("Count");
+		CountDataProvider labelProvider = new CountDataProvider();
+
+		labelProvider.setPlugins(pmbs);
+		countCol.setLabelProvider(labelProvider);
+		countCol.getColumn().setToolTipText("tooltip a definir");
+	}
+
 
 	@Override
 	public void setFocus()
@@ -389,6 +408,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		{
 			createPluginColumns(p);
 		}
+		createCountDataColumns(currentSelectedPlugins);
 		displayedPlugins = currentSelectedPlugins;
 
 	}
