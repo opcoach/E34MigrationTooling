@@ -254,7 +254,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 		labelProvider.setPlugin(pm);
 		col.setLabelProvider(labelProvider);
-		col.getColumn().setToolTipText("tooltip a definir");
+		col.getColumn().setToolTipText(pm.getBundleDescription().getName());
 
 		columnsCache.put(pm, col);
 
@@ -274,7 +274,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 		labelProvider.setPlugins(pmbs);
 		countCol.setLabelProvider(labelProvider);
-		countCol.getColumn().setToolTipText("tooltip a definir");
+		countCol.getColumn().setToolTipText("The number of extensions");
 	}
 
 
