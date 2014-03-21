@@ -15,12 +15,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.resource.FontRegistry;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.ischema.ISchema;
@@ -34,6 +33,8 @@ import org.eclipse.swt.widgets.Display;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
+import com.opcoach.e34.tools.Migration34Activator;
+
 /**
  * The column Label and content Provider used to display information in context
  * data TreeViewer. Two instances for label provider are created : one for key,
@@ -44,39 +45,6 @@ import org.osgi.framework.FrameworkUtil;
 @SuppressWarnings("restriction")
 public class PluginDataProvider extends ColumnLabelProvider implements ITreeContentProvider
 {
-
-	/*
-	 * private static final String NO_VALUE_COULD_BE_COMPUTED =
-	 * "No value could be yet computed"; private static final Color
-	 * COLOR_IF_FOUND = Display.getCurrent().getSystemColor(SWT.COLOR_BLUE);
-	 * private static final Color COLOR_IF_NOT_COMPUTED =
-	 * Display.getCurrent().getSystemColor(SWT.COLOR_MAGENTA); private static
-	 * final Object[] EMPTY_RESULT = new Object[0]; static final String
-	 * LOCAL_VALUE_NODE = "Local values managed  by this context"; static final
-	 * String INHERITED_INJECTED_VALUE_NODE =
-	 * "Inherited values injected or updated using this context";
-	 * 
-	 * private static final String NO_VALUES_FOUND = "No values found"; private
-	 * static final String UPDATED_IN_CLASS = "Updated in class :"; private
-	 * static final String INJECTED_IN_FIELD = "Injected in field :"; private
-	 * static final String INJECTED_IN_METHOD = "Injected in method :";
-	 */
-
-	// Image keys constants
-	/*
-	 * private static final String PUBLIC_METHOD_IMG_KEY =
-	 * "icons/methpub_obj.gif"; private static final String PUBLIC_FIELD_IMG_KEY
-	 * = "icons/field_public_obj.gif"; private static final String
-	 * VALUE_IN_CONTEXT_IMG_KEY = "icons/valueincontext.gif"; private static
-	 * final String INHERITED_VARIABLE_IMG_KEY = "icons/inher_co.gif"; private
-	 * static final String LOCAL_VARIABLE_IMG_KEY = "icons/letter-l-icon.png";
-	 * private static final String CONTEXT_FUNCTION_IMG_KEY =
-	 * "icons/contextfunction.gif"; private static final String INJECT_IMG_KEY =
-	 * "icons/annotation_obj.gif";
-	 */
-	private static final String IMG_DEPRECATED = "icons/deprecated.gif";
-
-	private ImageRegistry imgReg;
 
 	private Font boldFont;
 
@@ -90,13 +58,11 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	{
 		super();
 		initFonts();
-		initializeImageRegistry();
 	}
 
 	@Override
 	public void dispose()
 	{
-		imgReg = null;
 	}
 
 	public void inputChanged(Viewer viewer, Object oldInput, Object newInput)
@@ -188,7 +154,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	private Color red = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
+    Color red = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
 
 	@Override
 	public Color getForeground(Object element)
@@ -206,7 +172,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		return (val > 0 && isDeprecated(element)) ? red : null;
 	}
 
-	private boolean isDeprecated(Object element)
+	public boolean isDeprecated(Object element)
 	{
 		boolean deprecated = false;
 		if (element instanceof IExtensionPoint)
@@ -230,7 +196,10 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Image getImage(Object element)
 	{
-		return ((plugin == null) && isDeprecated(element)) ? imgReg.get(IMG_DEPRECATED) : null;
+		if ((plugin == null) && isDeprecated(element)) 
+			return  Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_DEPRECATED);
+		
+		  return null;
 
 	}
 
@@ -265,10 +234,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Object getParent(Object element)
 	{
-		/*
-		 * if (element == LOCAL_VALUE_NODE || element ==
-		 * INHERITED_INJECTED_VALUE_NODE) return null;
-		 */
 		// Not computed
 		return null;
 
@@ -282,14 +247,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	private void initializeImageRegistry()
-	{
-		Bundle b = FrameworkUtil.getBundle(this.getClass());
-		imgReg = new ImageRegistry();
-
-		imgReg.put(IMG_DEPRECATED, ImageDescriptor.createFromURL(b.getEntry(IMG_DEPRECATED)));
-
-	}
+	
 
 	private void initFonts()
 	{
@@ -297,6 +255,47 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		String fontName = fontData[0].getName();
 		FontRegistry registry = JFaceResources.getFontRegistry();
 		boldFont = registry.getBold(fontName);
+	}
+	
+	
+	public class DeprecatedFilter extends ViewerFilter
+	{
+		static final int MODE_VIEW_ALL = 0;
+		static final int MODE_VIEW_ONLY_DEPRECATED = 1;
+		static final int MODE_VIEW_NO_DEPRECATED = 2;
+		
+		private int mode;
+		public void setMode(int m)
+		{
+			mode = m;
+		}
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element)
+		{
+			if (mode != MODE_VIEW_ALL)
+			{
+				if (mode ==  MODE_VIEW_ONLY_DEPRECATED)
+					return isDeprecated(element);
+				else if (mode == MODE_VIEW_NO_DEPRECATED)
+					return !isDeprecated(element);
+			}
+			return true;
+		}
+	}
+	
+	/** Compute if all the line is with null values
+	 * 
+	 * @author olivier
+	 *
+	 */
+	public class ZeroLineFilter extends ViewerFilter
+	{
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element)
+		{
+			return isDeprecated(element);
+		}
+		
 	}
 
 }

@@ -26,21 +26,22 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
@@ -51,14 +52,18 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.ViewPart;
 
+import com.opcoach.e34.tools.Migration34Activator;
+
 @SuppressWarnings("restriction")
 public class MigrationStatsView extends ViewPart implements ISelectionListener
 {
 
+	private static final String COUNT_COLUMN = "Count";
+
 	private MigrationDataComparator comparator;
 
 	private Map<IPluginModelBase, TreeViewerColumn> columnsCache = new HashMap<IPluginModelBase, TreeViewerColumn>();
-	private TreeViewerColumn countCol=null;
+	private TreeViewerColumn countCol = null;
 
 	public MigrationStatsView()
 	{
@@ -83,19 +88,21 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private Collection<IPluginModelBase> displayedPlugins = Collections.EMPTY_LIST;
 	private TreeViewer tv;
 
+	private FilterStats filter;
+
 	@Override
 	public void createPartControl(Composite parent)
 	{
 		parent.setLayout(new GridLayout(2, false));
-	
+
 		createDashBoard(parent);
 		createDeprecatedDashBoard(parent);
-
 		updateDashboard();
-		
-		// createToolBar(parent);
+
+		createToolBar(parent);
+
 		tv = new TreeViewer(parent);
-		PluginDataProvider provider = new PluginDataProvider();
+		provider = new PluginDataProvider();
 		tv.setContentProvider(provider);
 		tv.setLabelProvider(provider);
 		tv.setInput(Platform.getExtensionRegistry());
@@ -103,7 +110,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		final Tree cTree = tv.getTree();
 		cTree.setHeaderVisible(true);
 		cTree.setLinesVisible(true);
-		cTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true,2,1)); // hspan=2
+		cTree.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1)); // hspan=2
 		tv.setInput("Foo"); // getElements starts alone
 
 		// Create the first column, containing extension points
@@ -117,57 +124,91 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		comparator = new MigrationDataComparator(0, labelProvider);
 		tv.setComparator(comparator);
 
+		// Set the filters.
+		filter = new FilterStats();
+		tv.setFilters(new ViewerFilter[] { filter });
+
 		// Open all the tree
 		tv.expandAll();
 
 		ColumnViewerToolTipSupport.enableFor(tv);
-		
-		parent.layout();
 
+		parent.layout();
 
 	}
 
 	private void createToolBar(Composite parent)
 	{
-		Composite trComp = new Composite(parent, SWT.NONE);
-		trComp.setBackground(Display.getCurrent().getSystemColor(
-				SWT.COLOR_GRAY));
-		trComp.setLayout(new RowLayout());
-	
-		ToolBar tb = new ToolBar(trComp,SWT.FLAT | SWT.LEFT);
-		RowData rd = new RowData();
-		tb.setLayoutData(rd);
-		
-		ToolItem ti = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
-		ti.setText(" 0 ");
-		ti.setToolTipText("Will filter empty lines");
+		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.LEFT);
+		/*
+		 * tb.setLayout(new RowLayout()); RowData rd = new RowData();
+		 * tb.setLayoutData(rd);
+		 */
 
-		ti.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				// filter empty lines...
-				System.out.println("Filter empty lines");			}
+		ToolItem expandAll = new ToolItem(tb, SWT.PUSH);
+		expandAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXPAND));
+		expandAll.setToolTipText("Expand all nodes");
+		expandAll.addSelectionListener(new SelectionListener()
+			{
+				@Override
+				public void widgetSelected(SelectionEvent e)
+				{
+					tv.expandAll();
+				}
 
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// filter empty lines...
-				System.out.println("Filter empty lines");			}
-		});
-		
-		
-		ToolItem filterDeprecated = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
-		filterDeprecated.setText("Depr");
-		filterDeprecated.setToolTipText("Will filter deprecated extension points and elements");
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e)
+				{
+				}
+			});
+		ToolItem collapseAll = new ToolItem(tb, SWT.PUSH);
+		collapseAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_COLLAPSE));
+		collapseAll.setToolTipText("Collapse nodes");
+		collapseAll.addSelectionListener(new SelectionListener()
+			{
+				@Override
+				public void widgetSelected(SelectionEvent e)
+				{
+					tv.collapseAll();
+				}
 
+				@Override
+				public void widgetDefaultSelected(SelectionEvent e)
+				{
+				}
+			});
 
-		filterDeprecated.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				// filter empty lines...
-				System.out.println("Filter deprecated");			}
+		// Add filters...
+		new ToolItem(tb, SWT.SEPARATOR);
 
-			public void widgetDefaultSelected(SelectionEvent e) {
-				// filter empty lines...
-				System.out.println("Filter deprecated");			}
-		});
-		
+		ToolItem ti = new ToolItem(tb, SWT.CHECK | SWT.BORDER);
+		ti.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_FILTER));
+		ti.setToolTipText("Filter empty lines");
+		ti.addSelectionListener(new SelectionListener()
+			{
+				public void widgetSelected(SelectionEvent e)
+				{
+					// filter empty lines...
+					filter.setFilterEmptyLines(!filter.getFilterEmptyLines());
+					tv.refresh();
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e)
+				{
+				}
+			});
+
+		// Create filter deprecated
+		ToolItem item = new ToolItem(tb, SWT.DROP_DOWN);
+		item.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_DEPRECATED));
+		item.setToolTipText("Filter here deprecated extensions points");
+
+		DropdownSelectionListener dslistener = new DropdownSelectionListener(item);
+		dslistener.add(FilterStats.SHOW_ALL);
+		dslistener.add(FilterStats.REMOVE_DEPRECATED);
+		dslistener.add(FilterStats.ONLY_DEPRECATED);
+		item.addSelectionListener(dslistener);
+
 	}
 
 	private void createDashBoard(Composite parent)
@@ -178,20 +219,19 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		dp.setLayout(new GridLayout(4, true));
 
 		createCounter(dp, "Views : ", "views/view");
-		createCounter(dp, "Editors : ", "editors/editor");	
+		createCounter(dp, "Editors : ", "editors/editor");
 		createCounter(dp, "Preference pages : ", "preferencePages/page");
 		createCounter(dp, "Property pages : ", "propertyPages/page");
 		createCounter(dp, "Actions Sets : ", "actionsSets/actionSet");
 		createCounter(dp, "Commands : ", "commands/command");
 		createCounter(dp, "Handlers : ", "handlers/handler");
 		createCounter(dp, "Menus : ", "menus/menuContribution");
-		
+
 	}
-	
+
 	private void createDeprecatedDashBoard(Composite parent)
 	{
-		// Create here a part with some different statistic information.
-		Group dp = new Group(parent, SWT.BORDER);
+		dp = new Group(parent, SWT.BORDER);
 		dp.setText("Deprecated Extension points counters");
 		dp.setLayout(new GridLayout(4, true));
 
@@ -206,27 +246,38 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		createCounter(dp, "Popup Object contrib : ", "popupMenus/objectContribution");
 		createCounter(dp, "Popup Viewer contrib : ", "popupMenus/viewerContribution");
 		createCounter(dp, "Presentation Factories : ", "presentationFactories/factory");
-	
+
 	}
-	
+
 	private Map<String, Label> countLabels = new HashMap<String, Label>();
-	
+
+	private PluginDataProvider provider;
+
+	private CountDataProvider countProvider;
+
+	private Group dp;
+
 	/**
-	 * Create the counter label and remember of it to compute it according to selection
+	 * Create the counter label and remember of it to compute it according to
+	 * selection
+	 * 
 	 * @param parent
-	 * @param title : the title for the counter
-	 * @param xpath : the xpath to search for in the plugin xml : ex : views/view, editors/editor
-	 *                must not give the full extension point name, only simple name
+	 * @param title
+	 *            : the title for the counter
+	 * @param xpath
+	 *            : the xpath to search for in the plugin xml : ex : views/view,
+	 *            editors/editor must not give the full extension point name,
+	 *            only simple name
 	 */
 	public void createCounter(Composite parent, String title, String xpath)
 	{
 		Label titleLabel = new Label(parent, SWT.BORDER);
 		titleLabel.setText(title);
-		titleLabel.setToolTipText("org.eclipse.ui."+xpath);
+		titleLabel.setToolTipText("org.eclipse.ui." + xpath);
 		Label valueLabel = new Label(parent, SWT.BORDER);
 		valueLabel.setText("???");
 		countLabels.put(xpath, valueLabel);
-		
+
 	}
 
 	/**
@@ -235,11 +286,20 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private void updateDashboard()
 	{
 		E4MigrationRegistry reg = E4MigrationRegistry.getDefault();
-		
+
 		for (String xpath : countLabels.keySet())
 		{
 			int count = reg.countNumberOfExtensions(xpath, displayedPlugins);
-			countLabels.get(xpath).setText(""+count);
+			Label label = countLabels.get(xpath);
+			label.setText("" + count);
+			if (label.getParent() == dp)
+			{
+				// stand in the deprecated group.. set red if > 0
+				if (count > 0)
+					label.setForeground(provider.red);
+				else
+					label.setForeground(null);
+			}
 		}
 	}
 
@@ -248,35 +308,46 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		// Add columns in the tree one column per selected plugin.
 		// Create the first column for the key
 		TreeViewerColumn col = new TreeViewerColumn(tv, SWT.NONE);
-		col.getColumn().setWidth(300);
-		col.getColumn().setText(pm.getBundleDescription().getName());
+		TreeColumn swtCol = col.getColumn();
+		swtCol.setText(pm.getBundleDescription().getName());
+		swtCol.setAlignment(SWT.CENTER);
 		PluginDataProvider labelProvider = new PluginDataProvider();
 
 		labelProvider.setPlugin(pm);
 		col.setLabelProvider(labelProvider);
-		col.getColumn().setToolTipText(pm.getBundleDescription().getName());
+		swtCol.setToolTipText(pm.getBundleDescription().getName());
+		swtCol.pack();
 
 		columnsCache.put(pm, col);
 
 	}
-	
+
 	private void createCountDataColumns(Collection<IPluginModelBase> pmbs)
 	{
-		if (countCol!=null) {
+		// Always Remove column to recreate it at the end
+		if (countCol != null)
+		{
 			countCol.getColumn().dispose();
+			countCol = null;
 		}
+
 		// Add columns in the tree one column per selected plugin.
 		// Create the first column for the key
-		countCol = new TreeViewerColumn(tv, SWT.NONE);
-		countCol.getColumn().setWidth(300);
-		countCol.getColumn().setText("Count");
-		CountDataProvider labelProvider = new CountDataProvider();
+		// Only if there are plugins selected
+		if (pmbs.size() > 0)
+		{
+			countCol = new TreeViewerColumn(tv, SWT.NONE);
+			TreeColumn swtCol = countCol.getColumn();
+			swtCol.setText(COUNT_COLUMN);
+			swtCol.setAlignment(SWT.CENTER);
+			countProvider = new CountDataProvider();
 
-		labelProvider.setPlugins(pmbs);
-		countCol.setLabelProvider(labelProvider);
-		countCol.getColumn().setToolTipText("The number of extensions");
+			countProvider.setPlugins(pmbs);
+			countCol.setLabelProvider(countProvider);
+			swtCol.setToolTipText("Sum the line");
+			swtCol.pack();
+		}
 	}
-
 
 	@Override
 	public void setFocus()
@@ -288,16 +359,14 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	public void selectionChanged(IWorkbenchPart part, ISelection selection)
 	{
 
-		if (selection.isEmpty())
-			return;
-
 		// Try to find selected plugins in selection
 		if (selection instanceof IStructuredSelection)
 		{
 			IStructuredSelection ss = (IStructuredSelection) selection;
 			// selectedPlugins.clear();
 			Collection<IPluginModelBase> currentSelectedPlugins = new ArrayList<IPluginModelBase>();
-			for (Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
+			for (@SuppressWarnings("unchecked")
+			Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
 			{
 				Object selected = it.next();
 				IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
@@ -317,63 +386,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 			updateDashboard();
 
-		}
-
-	}
-
-	/**
-	 * An entry comparator for the table, dealing with column index, keys and
-	 * values
-	 */
-	public class MigrationDataComparator extends ViewerComparator
-	{
-		private int columnIndex;
-		private int direction;
-		private ILabelProvider labelProvider;
-
-		public MigrationDataComparator(int columnIndex, ILabelProvider defaultLabelProvider)
-		{
-			this.columnIndex = columnIndex;
-			direction = SWT.UP;
-			labelProvider = defaultLabelProvider;
-		}
-
-		public int getDirection()
-		{
-			return direction;
-		}
-
-		/** Called when click on table header, reverse order */
-		public void setColumn(int column)
-		{
-			if (column == columnIndex)
-			{
-				// Same column as last sort; toggle the direction
-				direction = (direction == SWT.UP) ? SWT.DOWN : SWT.UP;
-			} else
-			{
-				// New column; do a descending sort
-				columnIndex = column;
-				direction = SWT.DOWN;
-			}
-		}
-
-		@Override
-		public int compare(Viewer viewer, Object e1, Object e2)
-		{
-			// Compare the text from label provider.
-			String lp1 = labelProvider.getText(e1);
-			String lp2 = labelProvider.getText(e2);
-			String s1 = lp1 == null ? "" : lp1.toLowerCase();
-			String s2 = lp2 == null ? "" : lp2.toLowerCase();
-			int rc = s1.compareTo(s2);
-			// If descending order, flip the direction
-			return (direction == SWT.DOWN) ? -rc : rc;
-		}
-
-		public void setLabelProvider(ILabelProvider textProvider)
-		{
-			labelProvider = textProvider;
 		}
 
 	}
@@ -408,7 +420,9 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		{
 			createPluginColumns(p);
 		}
+
 		createCountDataColumns(currentSelectedPlugins);
+		
 		displayedPlugins = currentSelectedPlugins;
 
 	}
@@ -431,4 +445,115 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			};
 		return selectionAdapter;
 	}
+
+	/**
+	 *  * This class provides the "drop down" functionality for our dropdown
+	 * tool items.  
+	 */
+	private class DropdownSelectionListener extends SelectionAdapter
+	{
+		private Menu menu;
+		private MenuItem currentSelected;
+
+		public DropdownSelectionListener(ToolItem dropdown)
+		{
+			menu = new Menu(dropdown.getParent().getShell());
+		}
+
+		/**
+		 * Adds an item to the dropdown list     * @param item the item to add
+		 *    
+		 */
+		public void add(String item)
+		{
+			MenuItem menuItem = new MenuItem(menu, SWT.CHECK);
+			menuItem.setText(item);
+			menuItem.addSelectionListener(new SelectionAdapter()
+				{
+					public void widgetSelected(SelectionEvent event)
+					{
+						MenuItem selected = (MenuItem) event.widget;
+						if ((currentSelected != null) && (currentSelected != selected))
+							currentSelected.setSelection(false);
+						selected.setSelection(true);
+						currentSelected = selected;
+						// Update the filter and refresh
+						filter.setFilterDeprecated(selected.getText());
+						tv.refresh();
+					}
+				});
+		}
+
+		/**
+		 * Called when either the button itself or the dropdown arrow is clicked
+		 *  
+		 */
+		public void widgetSelected(SelectionEvent event)
+		{
+			// If they clicked the arrow, we show the list
+			if (event.detail == SWT.ARROW)
+			{
+				// Determine where to put the dropdown list
+				ToolItem item = (ToolItem) event.widget;
+				Rectangle rect = item.getBounds();
+				Point pt = item.getParent().toDisplay(new Point(rect.x, rect.y));
+				menu.setLocation(pt.x, pt.y + rect.height);
+				menu.setVisible(true);
+			} else
+			{
+				// Nothing to do...
+				// System.out.println("button pressed");
+			}
+		}
+	}
+
+	class FilterStats extends ViewerFilter
+	{
+		static final String EMPTY_LINES = "Filter empty lines";
+		static final String SHOW_ALL = "Show all";
+		static final String REMOVE_DEPRECATED = "Remove deprecated";
+		static final String ONLY_DEPRECATED = "Show only deprecated";
+
+		private boolean filterEmptyLines = false;
+		private String filterDeprecated = SHOW_ALL;
+
+		void setFilterEmptyLines(boolean fel)
+		{
+			filterEmptyLines = fel;
+		}
+
+		public boolean getFilterEmptyLines()
+		{
+			return filterEmptyLines;
+		}
+
+		void setFilterDeprecated(String mode)
+		{
+			filterDeprecated = mode;
+		}
+
+		@Override
+		public boolean select(Viewer viewer, Object parentElement, Object element)
+		{
+			if (filterDeprecated != SHOW_ALL)
+			{
+
+				// Must filter the deprecated and may be empty lines
+				boolean elementIsDeprecated = provider.isDeprecated(element);
+				if ((filterDeprecated == ONLY_DEPRECATED) && !elementIsDeprecated)
+					return false;
+				if ((filterDeprecated == REMOVE_DEPRECATED) && elementIsDeprecated)
+					return false;
+
+				// Can now check if line is empty
+
+				return countProvider == null ? true : !(filterEmptyLines && "0".equals(countProvider.getText(element)));
+
+			} else
+				return countProvider == null ? true : !(filterEmptyLines && "0".equals(countProvider.getText(element)));
+
+		}
+
+	}
+
 }
