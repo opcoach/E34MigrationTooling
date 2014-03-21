@@ -28,6 +28,7 @@ public class Migration34Activator extends AbstractUIPlugin
 
 	public static final String IMG_DEPRECATED = "icons/deprecated.gif";
 	public static final String IMG_FILTER = "icons/filter.gif";
+	public static final String IMG_HELP = "icons/help.gif";
 	public static final String IMG_EXPAND = "icons/expandall.gif";
 	public static final String IMG_COLLAPSE = "icons/collapseall.gif";
 
@@ -93,6 +94,7 @@ public class Migration34Activator extends AbstractUIPlugin
 		reg.put(IMG_FILTER, ImageDescriptor.createFromURL(b.getEntry(IMG_FILTER)));
 		reg.put(IMG_COLLAPSE, ImageDescriptor.createFromURL(b.getEntry(IMG_COLLAPSE)));
 		reg.put(IMG_EXPAND, ImageDescriptor.createFromURL(b.getEntry(IMG_EXPAND)));
+		reg.put(IMG_HELP, ImageDescriptor.createFromURL(b.getEntry(IMG_HELP)));
 
 	}
 }

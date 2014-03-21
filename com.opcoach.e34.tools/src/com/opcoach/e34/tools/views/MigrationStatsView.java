@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,6 +51,7 @@ import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.opcoach.e34.tools.Migration34Activator;
@@ -59,6 +61,19 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 {
 
 	private static final String COUNT_COLUMN = "Count";
+
+	private static final String HELP_TXT = "This window displays statistics relative to a E4 migration."
+			+ "\n\nUSAGE\n-------"
+			+"\nSelect one plugin or several plugins in your package explorer and get statistics."
+			+"\n\nCONTENTS\n----------"
+			+"\nThe first column contains the list of org.eclipse.ui extension points."
+			+"\nMiddle columns contains sums of extensions point occurency"
+			+"\nLast column displays the sum."
+			+ "\nDeprecated extension points or elements are displayed in red."
+			+ "\nThe upper dashboards summarizes information" 
+			+ "\nThe more red you have, the more difficult will be your migration."
+			+ "\n\nFILTERS\n-------" 
+			+ "\nThe filter buttons can filter lines that have a nul total count, or deprecated elements";
 
 	private MigrationDataComparator comparator;
 
@@ -140,10 +155,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private void createToolBar(Composite parent)
 	{
 		ToolBar tb = new ToolBar(parent, SWT.FLAT | SWT.LEFT);
-		/*
-		 * tb.setLayout(new RowLayout()); RowData rd = new RowData();
-		 * tb.setLayoutData(rd);
-		 */
 
 		ToolItem expandAll = new ToolItem(tb, SWT.PUSH);
 		expandAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXPAND));
@@ -208,6 +219,28 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		dslistener.add(FilterStats.REMOVE_DEPRECATED);
 		dslistener.add(FilterStats.ONLY_DEPRECATED);
 		item.addSelectionListener(dslistener);
+		
+		
+		// Add help button
+		new ToolItem(tb, SWT.SEPARATOR);
+
+		ToolItem th = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
+		th.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_HELP));
+		th.setToolTipText(HELP_TXT);
+
+		th.addSelectionListener(new SelectionListener()
+			{
+				public void widgetSelected(SelectionEvent e)
+				{
+					// filter empty lines...
+					MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Statistics", HELP_TXT);
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e)
+				{
+				}
+			});
+
 
 	}
 
