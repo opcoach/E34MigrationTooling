@@ -10,6 +10,10 @@
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
@@ -34,6 +38,8 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import com.opcoach.e34.tools.Migration34Activator;
+import com.opcoach.e34.tools.model.CustomExtensionPoint;
+import com.opcoach.e34.tools.model.CustomSchema;
 
 /**
  * The column Label and content Provider used to display information in context
@@ -71,7 +77,9 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	public Object[] getElements(Object inputElement)
 	{
-		return E4MigrationRegistry.getExtensionsToParse().toArray();
+		List<Object> objs = new ArrayList<Object>(E4MigrationRegistry.getDefault().getExtensionsToParse());
+		objs.addAll(E4MigrationRegistry.getDefault().getCustomExtensionToParse());
+		return objs.toArray();
 
 	}
 
@@ -103,6 +111,11 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			 * ISchemaElement e = (ISchemaElement) parentElement; return
 			 * e.getSchema().getCandidateChildren(e);
 			 */
+		}
+		else if (parentElement instanceof CustomExtensionPoint) {
+			CustomExtensionPoint cep = (CustomExtensionPoint)parentElement;
+			Collection<CustomSchema> ses = cep.getSchemas();
+			return ses.toArray();
 		}
 
 		return null;
@@ -148,6 +161,20 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			else
 				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(se, plugin);
 
+		}
+		else if (element instanceof CustomExtensionPoint) {
+			CustomExtensionPoint cep = (CustomExtensionPoint) element;
+			if (plugin == null)
+				return cep.getUniqueId();
+			else
+				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(cep, plugin);
+		}
+		else if (element instanceof CustomSchema) {
+			CustomSchema cs = (CustomSchema) element;
+			if (plugin == null)
+				return cs.getId();
+			else
+				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(cs, plugin);
 		}
 
 		return super.getText(element);
