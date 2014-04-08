@@ -32,7 +32,7 @@ public class Migration34Activator extends AbstractUIPlugin
 	public static final String IMG_EXPAND = "icons/expandall.gif";
 	public static final String IMG_COLLAPSE = "icons/collapseall.gif";
 	public static final String IMG_EXTENSION = "icons/extensions_obj.gif";
-
+	public static final String IMG_EXPORT = "icons/export.gif";
 	// The shared instance
 	private static Migration34Activator plugin;
 
