@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -20,8 +21,6 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.dialogs.Dialog;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -42,6 +41,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
@@ -60,6 +60,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
 import com.opcoach.e34.tools.Migration34Activator;
+import com.opcoach.e34.tools.io.CvsExport;
+import com.opcoach.e34.tools.model.CustomExtensionPoint;
 
 @SuppressWarnings("restriction")
 public class MigrationStatsView extends ViewPart implements ISelectionListener {
@@ -261,40 +263,22 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
     protected void export(TreeViewer tv) {
         IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         Shell parent = workbenchWindow.getShell();
-        /*FileDialog dialog = new FileDialog(parent, SWT.SAVE);
+        FileDialog dialog = new FileDialog(parent, SWT.SAVE);
+        dialog.setFilterExtensions(new String[] { "*.csv" });
         dialog.setOverwrite(true);
         String filePath = dialog.open();
         if (filePath != null) {
-        	Collection<IExtensionPoint> points = E4MigrationRegistry
-        			.getExtensionsToParse();
-        	Iterator<IExtensionPoint> iter = points.iterator();
-        	while (iter.hasNext()) {
-        		IExtensionPoint point = iter.next();
-        		System.out.println("ext = " + point.getLabel() + " -- "
-        				+ point.getUniqueIdentifier());
-        	}*/
-        // toDo
-        /*
-         * Object obj = tv.getTree().getData(); PluginDataProvider pdp =
-         * (PluginDataProvider) tv.getContentProvider(); pdp.get
-         * System.out.println(obj.toString());
-         */
-        // }
-
-        Iterator<IPluginModelBase> iter = currentSelectedPlugins.iterator();
-        IPluginModelBase pluginBase = null;
-        Collection<IExtensionPoint> points = E4MigrationRegistry.getExtensionsToParse();
-        while (iter.hasNext()) {
-            pluginBase = iter.next();
-            System.out.println(" ********************* BUNDLE NAME = "
-                    + pluginBase.getBundleDescription().getName() + "*************************");
-            Iterator<IExtensionPoint> iter2 = points.iterator();
-            while (iter2.hasNext()) {
-                IExtensionPoint point = iter2.next();
-                int valueNumber = E4MigrationRegistry.getDefault().getInstanceNumber(point,
-                        pluginBase);
-                System.out.println("ext = " + point.getLabel() + " -- "
-                        + point.getUniqueIdentifier() + "- NB = " + valueNumber);
+            Collection<IExtensionPoint> extPts = E4MigrationRegistry.getDefault()
+                    .getExtensionsToParse();
+            Collection<CustomExtensionPoint> cExt = E4MigrationRegistry.getDefault()
+                    .getCustomExtensionToParse();
+            CvsExport cvsE = new CvsExport();
+            try {
+                cvsE.save(filePath, extPts, cExt, displayedPlugins);
+            }
+            catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
             }
 
         }
