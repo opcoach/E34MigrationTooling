@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2014 OPCoach.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Grégory COCHON (Tech Advantage)
+ *******************************************************************************/
 package com.opcoach.e34.tools.model;
 
 import java.util.Collection;
@@ -5,60 +15,66 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CustomExtensionPoint {
-	private String uniqueId = null;
-	private Map<String, CustomSchema> schemas = new HashMap<String, CustomSchema>();
+    private String uniqueId = null;
 
-	public CustomExtensionPoint(String id) {
-		this.uniqueId = id;
-	}
+    private final Map<String, CustomSchema> schemas = new HashMap<String, CustomSchema>();
 
-	public String getUniqueId() {
-		return uniqueId;
-	}
+    public CustomExtensionPoint(String id) {
+        this.uniqueId = id;
+    }
 
-	public void setUniqueId(String uniqueId) {
-		this.uniqueId = uniqueId;
-	}
+    public String getUniqueId() {
+        return uniqueId;
+    }
 
-	public CustomSchema getSchema(String schemaId) {
-		if (schemas.containsKey(schemaId) == false) {
-			CustomSchema schema = new CustomSchema(uniqueId , schemaId);
-			schemas.put(schemaId, schema);
-		}
-		return schemas.get(schemaId);
-	}
+    public void setUniqueId(String uniqueId) {
+        this.uniqueId = uniqueId;
+    }
 
-	public boolean containSchema(String schemaId) {
-		return schemas.containsKey(schemaId);
-	}
+    public CustomSchema getSchema(String schemaId) {
+        if (schemas.containsKey(schemaId) == false) {
+            CustomSchema schema = new CustomSchema(uniqueId, schemaId);
+            schemas.put(schemaId, schema);
+        }
+        return schemas.get(schemaId);
+    }
 
-	public Collection<CustomSchema> getSchemas() {
-		return schemas.values();
-	}
+    public boolean containSchema(String schemaId) {
+        return schemas.containsKey(schemaId);
+    }
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result
-				+ ((uniqueId == null) ? 0 : uniqueId.hashCode());
-		return result;
-	}
+    public Collection<CustomSchema> getSchemas() {
+        return schemas.values();
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		CustomExtensionPoint other = (CustomExtensionPoint) obj;
-		if (uniqueId == null) {
-			if (other.uniqueId != null)
-				return false;
-		} else if (!uniqueId.equals(other.uniqueId))
-			return false;
-		return true;
-	}
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((uniqueId == null) ? 0 : uniqueId.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        CustomExtensionPoint other = (CustomExtensionPoint) obj;
+        if (uniqueId == null) {
+            if (other.uniqueId != null) {
+                return false;
+            }
+        }
+        else if (!uniqueId.equals(other.uniqueId)) {
+            return false;
+        }
+        return true;
+    }
 }

@@ -1,3 +1,14 @@
+/*******************************************************************************
+ * Copyright (c) 2014 OPCoach.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Grégory COCHON (Tech Advantage)
+ *     Jérôme FALLEVOZ (Tech Advantage)
+ *******************************************************************************/
 package com.opcoach.e34.tools.io;
 
 import java.io.BufferedWriter;
@@ -9,10 +20,6 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.pde.core.plugin.IPluginModelBase;
-import org.eclipse.pde.internal.core.PDECore;
-import org.eclipse.pde.internal.core.ischema.ISchema;
-import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
