@@ -6,13 +6,15 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Grégory COCHON (Tech Advantage)
+ *     Grï¿½gory COCHON (Tech Advantage)
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
 import java.util.Collection;
 
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.pde.core.plugin.IPluginModelBase;
+import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
