@@ -6,7 +6,7 @@
  * http://www.eclipse.org/legal/epl-v10.html
  *
  * Contributors:
- *     Gr�gory COCHON (Tech Advantage)
+ *     Grégory COCHON (Tech Advantage)
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 

@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     OPCoach - initial API and implementation
- *     J�r�me FALLEVOZ (Tech Advantage): export csv file
+ *     Jérôme FALLEVOZ (Tech Advantage): export csv file
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
