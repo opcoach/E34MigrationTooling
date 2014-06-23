@@ -22,6 +22,8 @@ import java.util.Map;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -238,6 +240,36 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
         dslistener.add(FilterStats.ONLY_DEPRECATED);
         item.addSelectionListener(dslistener);
 
+        
+    	// Add CustomExtension button
+		new ToolItem(tb, SWT.SEPARATOR);
+
+		ToolItem extItem = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
+		extItem.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXTENSION));
+		extItem.setToolTipText("Add a custom extensions points");
+		extItem.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				// filter empty lines...
+				InputDialog dlg = new InputDialog(
+						MigrationStatsView.this.getSite().getShell(),
+						"Custom extension statistics",
+						"Give the extension point as you want to follow in statistic",
+						"", null);
+
+				if (dlg.open() == Dialog.OK) {
+					String value = dlg.getValue();
+					E4MigrationRegistry.getDefault()
+							.addCustomExtensionPointIdentifier(value);
+					tv.refresh();
+				}
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+
+        
+        
         // Add help button
         new ToolItem(tb, SWT.SEPARATOR);
 
