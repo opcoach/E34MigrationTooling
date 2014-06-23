@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.opcoach.e34tools.feature_1.0.0.201403252212.jar" id="com.opcoach.e34tools.feature" version="1.0.0.201403252212">
+   <feature url="features/com.opcoach.e34tools.feature_1.0.0.qualifier.jar" id="com.opcoach.e34tools.feature" version="1.0.0.qualifier">
       <category name="e34tools"/>
    </feature>
    <category-def name="e34tools" label="E34 Tools"/>
