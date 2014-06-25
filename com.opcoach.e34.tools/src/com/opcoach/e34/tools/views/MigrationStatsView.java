@@ -37,6 +37,7 @@ import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
 import org.eclipse.pde.internal.core.ifeature.IFeaturePlugin;
+import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -95,7 +96,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	 */
 	private Collection<String> prefixFilters = new ArrayList<String>();
 	private String prefixFiltersString = "";
-	
+
 	private final Map<String, Label> countLabels = new HashMap<String, Label>();
 
 	private PluginDataProvider provider;
@@ -105,8 +106,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private Group dp;
 
 	private ArrayList<IPluginModelBase> currentSelectedPlugins;
-
-
 
 	public MigrationStatsView()
 	{
@@ -139,6 +138,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		parent.setLayout(new GridLayout(2, false));
 
+		provider = new PluginDataProvider();
+
 		createDashBoard(parent);
 		createDeprecatedDashBoard(parent);
 		updateDashboard();
@@ -146,7 +147,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		createToolBar(parent);
 
 		tv = new TreeViewer(parent);
-		provider = new PluginDataProvider();
 		tv.setContentProvider(provider);
 		tv.setLabelProvider(provider);
 		tv.setInput(Platform.getExtensionRegistry());
@@ -376,14 +376,12 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		prefixFilters.clear();
 		if (prefixFiltersString.trim().length() == 0)
 			return;
-		
+
 		do
 		{
 			String s = stk.nextToken();
 			prefixFilters.add(s.trim());
-			System.out.println("Added : " + s.trim());
 		} while (stk.hasMoreTokens());
-		
 
 	}
 
@@ -418,16 +416,15 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		// Create here a part with some different statistic information.
 		Group dp = new Group(parent, SWT.BORDER);
 		dp.setText("Extension points counters");
-		dp.setLayout(new GridLayout(4, true));
+		dp.setLayout(new GridLayout(4, false));
 
-		createCounter(dp, "Views : ", "views/view");
-		createCounter(dp, "Editors : ", "editors/editor");
-		createCounter(dp, "Preference pages : ", "preferencePages/page");
-		createCounter(dp, "Property pages : ", "propertyPages/page");
-		createCounter(dp, "Actions Sets : ", "actionsSets/actionSet");
-		createCounter(dp, "Commands : ", "commands/command");
-		createCounter(dp, "Handlers : ", "handlers/handler");
-		createCounter(dp, "Menus : ", "menus/menuContribution");
+		createCounter(dp, "views/view : ", "org.eclipse.ui.views/view");
+		createCounter(dp, "editors/editor : ", "org.eclipse.ui.editors/editor");
+		createCounter(dp, "preferencePages/page : ", "org.eclipse.ui.preferencePages/page");
+		createCounter(dp, "propertyPages/page : ", "org.eclipse.ui.propertyPages/page");
+		createCounter(dp, "commands/command : ", "org.eclipse.ui.commands/command");
+		createCounter(dp, "handlers/handler : ", "org.eclipse.ui.handlers/handler");
+		createCounter(dp, "menus/menuContribution : ", "org.eclipse.ui.menus/menuContribution");
 
 	}
 
@@ -435,19 +432,23 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		dp = new Group(parent, SWT.BORDER);
 		dp.setText("Deprecated Extension points counters");
-		dp.setLayout(new GridLayout(4, true));
+		dp.setLayout(new GridLayout(4, false));
 
-		createCounter(dp, "Accelerator Config : ", "acceleratorConfigurations/acceleratorConfiguration");
-		createCounter(dp, "Accelerator Scopes : ", "acceleratorScopes/acceleratorScope");
-		createCounter(dp, "Accelerator Sets : ", "acceleratorScopes/acceleratorSet");
-		createCounter(dp, "Actions Definition : ", "actionsDefinitions/actionDefinition");
-		createCounter(dp, "Actions Set Part Association : ", "actionsSetPartAssociations/actionsSetPartAssociation");
-		createCounter(dp, "Actions Sets : ", "actionSets/actionSet");
-		createCounter(dp, "Editor Actions : ", "editorActions/editorContribution");
-		createCounter(dp, "View Actions : ", "viewActions/viewContribution");
-		createCounter(dp, "Popup Object contrib : ", "popupMenus/objectContribution");
-		createCounter(dp, "Popup Viewer contrib : ", "popupMenus/viewerContribution");
-		createCounter(dp, "Presentation Factories : ", "presentationFactories/factory");
+		for (IExtensionPoint iep : E4MigrationRegistry.getDefault().getExtensionsToParse())
+		{
+				// Search for deprecated elements.
+				for (Object node : provider.getChildren(iep))
+				{
+					if (node instanceof ISchemaElement)
+					{
+						ISchemaElement se = (ISchemaElement) node;
+						if (se.isDeprecated())
+							createCounter(dp, iep.getSimpleIdentifier() + "/" + se.getName() + " : ", iep.getUniqueIdentifier() +"/" + se.getName());
+					}
+				}
+		}
+		
+		dp.pack();
 
 	}
 
@@ -467,7 +468,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		Label titleLabel = new Label(parent, SWT.BORDER);
 		titleLabel.setText(title);
-		titleLabel.setToolTipText("org.eclipse.ui." + xpath);
+		titleLabel.setToolTipText(xpath);
 		Label valueLabel = new Label(parent, SWT.BORDER);
 		valueLabel.setText("???");
 		countLabels.put(xpath, valueLabel);
@@ -517,8 +518,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 		columnsCache.put(pm, col);
 	}
-	
-	
+
 	private String getColumnName(IPluginModelBase pm)
 	{
 		String pluginName = pm.getBundleDescription().getName();
@@ -528,10 +528,10 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			{
 				if (prefix.length() < pluginName.length())
 				{
-				   pluginName = pluginName.substring(prefix.length());
-				   // Adjust to remove the first '.' if present
-				   if ((pluginName.startsWith(".")) && pluginName.length()>2)
-					   pluginName = pluginName.substring(1);
+					pluginName = pluginName.substring(prefix.length());
+					// Adjust to remove the first '.' if present
+					if ((pluginName.startsWith(".")) && pluginName.length() > 2)
+						pluginName = pluginName.substring(1);
 				}
 				break;
 			}
@@ -576,12 +576,13 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	public void selectionChanged(IWorkbenchPart part, ISelection selection)
 	{
 
+		if (selection.isEmpty())
+			return;
+
 		// Try to find selected plugins in selection
 		if (selection instanceof IStructuredSelection)
 		{
 			IStructuredSelection ss = (IStructuredSelection) selection;
-			// selectedPlugins.clear();
-			Object o = ss.getFirstElement();
 			currentSelectedPlugins = new ArrayList<IPluginModelBase>();
 			for (@SuppressWarnings("unchecked")
 			Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
@@ -612,7 +613,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 			mergeTableViewerColumns(currentSelectedPlugins);
 
-			tv.refresh();
+			if (tv != null)
+				tv.refresh();
 
 			updateDashboard();
 
