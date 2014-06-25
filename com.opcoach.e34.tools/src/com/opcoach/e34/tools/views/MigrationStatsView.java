@@ -35,6 +35,8 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
+import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
+import org.eclipse.pde.internal.core.ifeature.IFeaturePlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -74,6 +76,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
     private static final String HELP_TXT = "This window displays statistics relative to a E4 migration."
             + "\n\nUSAGE\n-------"
             + "\nSelect one plugin or several plugins in your package explorer and get statistics."
+            + "\nYOU MUST IMPORT THE latest org.eclipse.ui plugin (version 4.X) in your workspace"
             + "\n\nCONTENTS\n----------"
             + "\nThe first column contains the list of org.eclipse.ui extension points."
             + "\nMiddle columns contains sums of extensions point occurency"
@@ -460,6 +463,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
         if (selection instanceof IStructuredSelection) {
             IStructuredSelection ss = (IStructuredSelection) selection;
             // selectedPlugins.clear();
+            Object o = ss.getFirstElement();
             currentSelectedPlugins = new ArrayList<IPluginModelBase>();
             for (@SuppressWarnings("unchecked")
             Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();) {
@@ -470,6 +474,19 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener {
                     IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
                     if (m != null) {
                         currentSelectedPlugins.add(m);
+                    }
+                    else 
+                    {
+                    	// Try to see if it is a feature. 
+                    	IFeatureModel fm = PDECore.getDefault().getFeatureModelManager().getFeatureModel(proj);
+                    	for (IFeaturePlugin fp : fm.getFeature().getPlugins())
+                    	{
+                    		System.out.println("plugin : " + fp.getId());
+                    		IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
+                    		if (pm != null)
+                    			currentSelectedPlugins.add(pm);
+                    	}
+                    	
                     }
                 }
             }
