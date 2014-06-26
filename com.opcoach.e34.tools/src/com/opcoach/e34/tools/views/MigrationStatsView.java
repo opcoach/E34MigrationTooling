@@ -33,6 +33,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.osgi.service.resolver.BundleDescription;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.internal.core.PDECore;
 import org.eclipse.pde.internal.core.ifeature.IFeatureModel;
@@ -376,7 +377,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		prefixFiltersString = value;
 		StringTokenizer stk = new StringTokenizer(value, ",");
-		System.out.println("Filtered string : " + value);
 
 		prefixFilters.clear();
 		if (prefixFiltersString.trim().length() == 0)
@@ -420,8 +420,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	{
 		maindashboard = new Group(parent, SWT.BORDER);
 		maindashboard.setLayout(new FillLayout());
-		maindashboard.setText("Usual Extension points counters");
-		maindashboard.setLayout(new GridLayout(4, false));
+		maindashboard.setText("Usual Extension points");
+		maindashboard.setLayout(new GridLayout(2, false));
 
 		createCounter(maindashboard, "views/view : ", "org.eclipse.ui.views/view");
 		createCounter(maindashboard, "editors/editor : ", "org.eclipse.ui.editors/editor");
@@ -438,7 +438,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private void createDeprecatedDashBoard(Composite parent)
 	{
 		deprdashboard = new Group(parent, SWT.BORDER);
-		deprdashboard.setText("Deprecated Extension points counters");
+		deprdashboard.setLayout(new FillLayout());
+		deprdashboard.setText("Deprecated Extension points");
 		deprdashboard.setLayout(new GridLayout(4, false));
 
 		for (IExtensionPoint iep : E4MigrationRegistry.getDefault().getExtensionsToParse())
@@ -531,7 +532,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private String getColumnName(IPluginModelBase pm)
 	{
-		String pluginName = pm.getBundleDescription().getName();
+		BundleDescription bundleDescription = pm.getBundleDescription();
+		String pluginName = (bundleDescription != null) ? bundleDescription.getName() : "NO NAME ???";
 		for (String prefix : prefixFilters)
 		{
 			if (pluginName.startsWith(prefix))
@@ -611,7 +613,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 						IFeatureModel fm = PDECore.getDefault().getFeatureModelManager().getFeatureModel(proj);
 						for (IFeaturePlugin fp : fm.getFeature().getPlugins())
 						{
-							System.out.println("plugin : " + fp.getId());
 							IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
 							if (pm != null)
 								currentSelectedPlugins.add(pm);

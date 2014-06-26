@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.opcoach.e34.tools.views;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +18,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.Platform;
@@ -24,9 +31,14 @@ import org.eclipse.pde.core.plugin.IPluginExtension;
 import org.eclipse.pde.core.plugin.IPluginModelBase;
 import org.eclipse.pde.core.plugin.IPluginObject;
 import org.eclipse.pde.internal.core.PDECore;
+import org.eclipse.pde.internal.core.PDEExtensionRegistry;
+import org.eclipse.pde.internal.core.bundle.WorkspaceBundleFragmentModel;
+import org.eclipse.pde.internal.core.bundle.WorkspaceBundlePluginModel;
 import org.eclipse.pde.internal.core.ischema.ISchema;
 import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.eclipse.pde.internal.core.plugin.PluginElement;
+import org.eclipse.pde.internal.core.plugin.WorkspacePluginModelBase;
+import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.pde.internal.core.schema.Schema;
 
 import com.opcoach.e34.tools.model.CustomExtensionPoint;
@@ -38,12 +50,14 @@ import com.opcoach.e34.tools.model.CustomSchema;
  * workspace and plugin object to recompute data
  */
 @SuppressWarnings("restriction")
-public class E4MigrationRegistry
+public class E4MigrationRegistry implements IResourceChangeListener
 {
 
 	private Map<String, Integer> migrationData = null;
 
 	private Set<CustomExtensionPoint> customExtensionPoint = null;
+
+	private boolean reparseExtensions = true;
 
 	private static E4MigrationRegistry INSTANCE;
 
@@ -53,6 +67,9 @@ public class E4MigrationRegistry
 	{
 		migrationData = new HashMap<String, Integer>();
 		customExtensionPoint = new HashSet<CustomExtensionPoint>();
+
+		// Listen to workspace to reparse extensions in case of change
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
 	}
 
 	public static E4MigrationRegistry getDefault()
@@ -110,23 +127,84 @@ public class E4MigrationRegistry
 		return result;
 	}
 
+	private Collection<IExtensionPoint> extensionsToParse = new ArrayList<IExtensionPoint>();
+
 	public Collection<IExtensionPoint> getExtensionsToParse()
 	{
-		// For the moment get all org.eclipse.ui extensions from current Eclipse
-		// May me should be updated to get extension points from the
-		// org.eclipse.ui of target platform !?
-		Collection<IExtensionPoint> result = new ArrayList<IExtensionPoint>();
+		if (!reparseExtensions)
+			return extensionsToParse;
+
+		IExtensionRegistry wsExtRegistry = null;
+		// Read the workspace extensions. Must introspect to get the workspace
+		// extension registry (hidden)
+		try
+		{
+			PDEExtensionRegistry reg = PDECore.getDefault().getExtensionsRegistry();
+			Field f = reg.getClass().getDeclaredField("fRegistry");
+
+			f.setAccessible(true);
+			// @SuppressWarnings("unchecked")
+			wsExtRegistry = (IExtensionRegistry) f.get(reg);
+		} catch (Throwable e)
+		{
+			e.printStackTrace();
+		}
+
+		if (wsExtRegistry != null)
+		{
+			IWorkspace ws = PDECore.getWorkspace();
+
+			for (IProject project : ws.getRoot().getProjects())
+			{
+				WorkspacePluginModelBase fModel = null;
+
+				// This code comes from NewProjectCreationOPeration...
+				IFile fragmentXml = PDEProject.getFragmentXml(project);
+				IFile pluginXml = PDEProject.getPluginXml(project);
+				IFile manifest = PDEProject.getManifest(project);
+				if (fragmentXml.exists())
+				{
+					fModel = new WorkspaceBundleFragmentModel(manifest, fragmentXml);
+				} else
+				// if (pluginXml.exists())
+				{
+					fModel = new WorkspaceBundlePluginModel(manifest, pluginXml);
+				}
+
+				if (fModel == null)
+					break;
+				for (IExtensionPoint ep : wsExtRegistry.getExtensionPoints(project.getName()))
+				{
+					String epId = ep.getNamespaceIdentifier();
+					extensionsToParse.add(ep);
+				}
+			}
+		}
+
+		// Read the extensions in the current eclipse configuration (if luna ->
+		// read luna extensions)
 		IExtensionRegistry extReg = Platform.getExtensionRegistry();
 		for (IExtensionPoint ep : extReg.getExtensionPoints())
 		{
 			String epId = ep.getNamespaceIdentifier();
-			// System.out.println("==>"+epId);
 			if (epId.equals("org.eclipse.ui"))
 			{
-				result.add(ep);
+				// Check if extension already exists
+				boolean mustAdd = true;
+				for (IExtensionPoint iep : extensionsToParse)
+					if (iep.getUniqueIdentifier().equals(ep.getUniqueIdentifier()))
+					{
+						mustAdd = false;
+						break;
+					}
+				if (mustAdd)
+					extensionsToParse.add(ep);
 			}
 		}
-		return result;
+
+		reparseExtensions = false;
+
+		return extensionsToParse;
 	}
 
 	public Collection<CustomExtensionPoint> getCustomExtensionToParse()
@@ -240,7 +318,8 @@ public class E4MigrationRegistry
 					nbExtensions++;
 			}
 			migrationData.put(getKey(ep, plugin), nbExtensions);
-			// System.out.println("Put : " + getKey(ep, plugin) + "    -> value =" + nbExtensions);
+			// System.out.println("Put : " + getKey(ep, plugin) +
+			// "    -> value =" + nbExtensions);
 
 			// Then compute number of element usage for this extension.
 			for (ISchemaElement se : getElementToParse(ep))
@@ -324,6 +403,13 @@ public class E4MigrationRegistry
 	{
 		CustomExtensionPoint cep = new CustomExtensionPoint(id);
 		customExtensionPoint.add(cep);
+	}
+
+	@Override
+	public void resourceChanged(IResourceChangeEvent event)
+	{
+		reparseExtensions = true;
+		extensionsToParse.clear();
 	}
 
 }
