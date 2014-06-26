@@ -494,7 +494,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			int count = reg.countNumberOfExtensions(xpath, displayedPlugins);
 			Label label = countLabels.get(xpath);
 			label.setText("" + count);
-			if (label.getParent() == dp)
+			if (label.getParent() == deprdashboard)
 			{
 				// stand in the deprecated group.. set red if > 0
 				if (count > 0)
