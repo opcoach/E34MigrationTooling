@@ -158,8 +158,7 @@ public class E4MigrationRegistry
 
 	private String getKey(ISchemaElement e, IPluginModelBase plugin)
 	{
-		Schema o = (Schema) e.getParent();
-		return plugin.getBundleDescription().getName() + "/" + o.getQualifiedPointId() + "/" + getXPath(e);
+		return plugin.getBundleDescription().getName() + "/" + getXPath(e);
 	}
 
 	private String getKey(CustomExtensionPoint cep, IPluginModelBase plugin)
@@ -184,7 +183,8 @@ public class E4MigrationRegistry
 
 	public String getXPath(ISchemaElement e)
 	{
-		return e.getName();
+		Schema o = (Schema) e.getParent();
+		return o.getQualifiedPointId() + "/" + e.getName();
 	}
 
 	public String getXPath(CustomExtensionPoint cep)

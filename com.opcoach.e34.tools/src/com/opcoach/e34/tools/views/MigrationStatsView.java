@@ -44,6 +44,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -132,6 +133,10 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private TreeViewer tv;
 
 	private FilterStats filter;
+
+	private Group maindashboard;
+
+	private Group deprdashboard;
 
 	@Override
 	public void createPartControl(Composite parent)
@@ -413,26 +418,28 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private void createDashBoard(Composite parent)
 	{
-		// Create here a part with some different statistic information.
-		Group dp = new Group(parent, SWT.BORDER);
-		dp.setText("Extension points counters");
-		dp.setLayout(new GridLayout(4, false));
+		maindashboard = new Group(parent, SWT.BORDER);
+		maindashboard.setLayout(new FillLayout());
+		maindashboard.setText("Usual Extension points counters");
+		maindashboard.setLayout(new GridLayout(4, false));
 
-		createCounter(dp, "views/view : ", "org.eclipse.ui.views/view");
-		createCounter(dp, "editors/editor : ", "org.eclipse.ui.editors/editor");
-		createCounter(dp, "preferencePages/page : ", "org.eclipse.ui.preferencePages/page");
-		createCounter(dp, "propertyPages/page : ", "org.eclipse.ui.propertyPages/page");
-		createCounter(dp, "commands/command : ", "org.eclipse.ui.commands/command");
-		createCounter(dp, "handlers/handler : ", "org.eclipse.ui.handlers/handler");
-		createCounter(dp, "menus/menuContribution : ", "org.eclipse.ui.menus/menuContribution");
+		createCounter(maindashboard, "views/view : ", "org.eclipse.ui.views/view");
+		createCounter(maindashboard, "editors/editor : ", "org.eclipse.ui.editors/editor");
+		createCounter(maindashboard, "preferencePages/page : ", "org.eclipse.ui.preferencePages/page");
+		createCounter(maindashboard, "propertyPages/page : ", "org.eclipse.ui.propertyPages/page");
+		createCounter(maindashboard, "commands/command : ", "org.eclipse.ui.commands/command");
+		createCounter(maindashboard, "handlers/handler : ", "org.eclipse.ui.handlers/handler");
+		createCounter(maindashboard, "menus/menuContribution : ", "org.eclipse.ui.menus/menuContribution");
+		
+		maindashboard.pack();
 
 	}
 
 	private void createDeprecatedDashBoard(Composite parent)
 	{
-		dp = new Group(parent, SWT.BORDER);
-		dp.setText("Deprecated Extension points counters");
-		dp.setLayout(new GridLayout(4, false));
+		deprdashboard = new Group(parent, SWT.BORDER);
+		deprdashboard.setText("Deprecated Extension points counters");
+		deprdashboard.setLayout(new GridLayout(4, false));
 
 		for (IExtensionPoint iep : E4MigrationRegistry.getDefault().getExtensionsToParse())
 		{
@@ -443,12 +450,12 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 					{
 						ISchemaElement se = (ISchemaElement) node;
 						if (se.isDeprecated())
-							createCounter(dp, iep.getSimpleIdentifier() + "/" + se.getName() + " : ", iep.getUniqueIdentifier() +"/" + se.getName());
+							createCounter(deprdashboard, iep.getSimpleIdentifier() + "/" + se.getName() + " : ", iep.getUniqueIdentifier() +"/" + se.getName());
 					}
 				}
 		}
 		
-		dp.pack();
+		deprdashboard.pack();
 
 	}
 
@@ -466,10 +473,10 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	 */
 	public void createCounter(Composite parent, String title, String xpath)
 	{
-		Label titleLabel = new Label(parent, SWT.BORDER);
+		Label titleLabel = new Label(parent, SWT.NONE);
 		titleLabel.setText(title);
 		titleLabel.setToolTipText(xpath);
-		Label valueLabel = new Label(parent, SWT.BORDER);
+		Label valueLabel = new Label(parent, SWT.NONE);
 		valueLabel.setText("???");
 		countLabels.put(xpath, valueLabel);
 
@@ -499,6 +506,9 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 				}
 			}
 		}
+		
+		maindashboard.pack();
+		deprdashboard.pack();
 	}
 
 	private void createPluginColumns(IPluginModelBase pm)
