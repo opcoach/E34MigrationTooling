@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -107,7 +108,8 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private Group dp;
 
-	private ArrayList<IPluginModelBase> currentSelectedPlugins;
+	// selected plugins must not appear twice !  (Fix issue #8)
+	private HashSet<IPluginModelBase> currentSelectedPlugins;
 
 	public MigrationStatsView()
 	{
@@ -598,7 +600,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		if (selection instanceof IStructuredSelection)
 		{
 			IStructuredSelection ss = (IStructuredSelection) selection;
-			currentSelectedPlugins = new ArrayList<IPluginModelBase>();
+			currentSelectedPlugins = new HashSet<IPluginModelBase>();
 			for (@SuppressWarnings("unchecked")
 			Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
 			{
@@ -635,6 +637,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		}
 
 	}
+	
 
 	private void mergeTableViewerColumns(Collection<IPluginModelBase> currentSelectedPlugins)
 	{
