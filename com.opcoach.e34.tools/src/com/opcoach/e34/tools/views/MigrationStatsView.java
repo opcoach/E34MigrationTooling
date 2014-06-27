@@ -430,7 +430,10 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		createCounter(maindashboard, "commands/command : ", "org.eclipse.ui.commands/command");
 		createCounter(maindashboard, "handlers/handler : ", "org.eclipse.ui.handlers/handler");
 		createCounter(maindashboard, "menus/menuContribution : ", "org.eclipse.ui.menus/menuContribution");
-		
+		createCounter(maindashboard, "newWizards/wizard : ", "org.eclipse.ui.newWizards/wizard");
+		createCounter(maindashboard, "importWizards/wizard : ", "org.eclipse.ui.importWizards/wizard");
+		createCounter(maindashboard, "exportWizards/wizard : ", "org.eclipse.ui.exportWizards/wizard");
+				
 		maindashboard.pack();
 
 	}
