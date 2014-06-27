@@ -108,7 +108,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private Group dp;
 
-	// selected plugins must not appear twice !  (Fix issue #8)
+	// selected plugins must not appear twice ! (Fix issue #8)
 	private HashSet<IPluginModelBase> currentSelectedPlugins;
 
 	public MigrationStatsView()
@@ -435,7 +435,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		createCounter(maindashboard, "newWizards/wizard : ", "org.eclipse.ui.newWizards/wizard");
 		createCounter(maindashboard, "importWizards/wizard : ", "org.eclipse.ui.importWizards/wizard");
 		createCounter(maindashboard, "exportWizards/wizard : ", "org.eclipse.ui.exportWizards/wizard");
-				
+
 		maindashboard.pack();
 
 	}
@@ -449,18 +449,19 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 		for (IExtensionPoint iep : E4MigrationRegistry.getDefault().getExtensionsToParse())
 		{
-				// Search for deprecated elements.
-				for (Object node : provider.getChildren(iep))
+			// Search for deprecated elements.
+			for (Object node : provider.getChildren(iep))
+			{
+				if (node instanceof ISchemaElement)
 				{
-					if (node instanceof ISchemaElement)
-					{
-						ISchemaElement se = (ISchemaElement) node;
-						if (se.isDeprecated())
-							createCounter(deprdashboard, iep.getSimpleIdentifier() + "/" + se.getName() + " : ", iep.getUniqueIdentifier() +"/" + se.getName());
-					}
+					ISchemaElement se = (ISchemaElement) node;
+					if (se.isDeprecated())
+						createCounter(deprdashboard, iep.getSimpleIdentifier() + "/" + se.getName() + " : ",
+								iep.getUniqueIdentifier() + "/" + se.getName());
 				}
+			}
 		}
-		
+
 		deprdashboard.pack();
 
 	}
@@ -512,7 +513,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 				}
 			}
 		}
-		
+
 		maindashboard.pack();
 		deprdashboard.pack();
 	}
@@ -616,11 +617,14 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 					{
 						// Try to see if it is a feature.
 						IFeatureModel fm = PDECore.getDefault().getFeatureModelManager().getFeatureModel(proj);
-						for (IFeaturePlugin fp : fm.getFeature().getPlugins())
+						if (fm != null)
 						{
-							IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
-							if (pm != null)
-								currentSelectedPlugins.add(pm);
+							for (IFeaturePlugin fp : fm.getFeature().getPlugins())
+							{
+								IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
+								if (pm != null)
+									currentSelectedPlugins.add(pm);
+							}
 						}
 
 					}
@@ -630,14 +634,18 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 			mergeTableViewerColumns(currentSelectedPlugins);
 
 			if (tv != null)
-				tv.refresh();
+			{
+				// Must refresh without filter and then refilter...
+				tv.setFilters(new ViewerFilter[] {  });
+				tv.setFilters(new ViewerFilter[] { filter });
+
+			}
 
 			updateDashboard();
 
 		}
 
 	}
-	
 
 	private void mergeTableViewerColumns(Collection<IPluginModelBase> currentSelectedPlugins)
 	{
