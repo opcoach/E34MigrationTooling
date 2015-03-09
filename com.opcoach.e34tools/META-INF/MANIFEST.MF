@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: E34 Migration Tools
-Bundle-SymbolicName: com.opcoach.e34.tools;singleton:=true
+Bundle-SymbolicName: com.opcoach.e34tools;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: com.opcoach.e34.tools.Migration34Activator
 Bundle-Vendor: OPCOACH
