@@ -8,7 +8,7 @@
  * Contributors:
  *     Grégory COCHON (Tech Advantage)
  *******************************************************************************/
-package com.opcoach.e34.tools.model;
+package com.opcoach.e34tools.model;
 
 public class CustomSchema {
     private String id = null;

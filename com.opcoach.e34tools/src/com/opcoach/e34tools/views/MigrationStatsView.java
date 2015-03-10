@@ -9,7 +9,7 @@
  *     OPCoach - initial API and implementation
  *     Jérôme FALLEVOZ (Tech Advantage): export csv file
  *******************************************************************************/
-package com.opcoach.e34.tools.views;
+package com.opcoach.e34tools.views;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -68,9 +68,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import com.opcoach.e34.tools.Migration34Activator;
-import com.opcoach.e34.tools.io.CvsExport;
-import com.opcoach.e34.tools.model.CustomExtensionPoint;
+import com.opcoach.e34tools.Migration34Activator;
+import com.opcoach.e34tools.io.CvsExport;
+import com.opcoach.e34tools.model.CustomExtensionPoint;
 
 @SuppressWarnings("restriction")
 public class MigrationStatsView extends ViewPart implements ISelectionListener

@@ -9,7 +9,7 @@
       </category>
       <view
             category="com.opcoach.e34.tools.category1"
-            class="com.opcoach.e34.tools.views.MigrationStatsView"
+            class="com.opcoach.e34tools.views.MigrationStatsView"
             icon="icons/TreeViewerComposite.gif"
             id="com.opcoach.e34.tools.e34Stats"
             name="Migration Stats"

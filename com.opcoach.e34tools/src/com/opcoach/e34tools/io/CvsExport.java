@@ -9,7 +9,7 @@
  *     Grégory COCHON (Tech Advantage)
  *     Jérôme FALLEVOZ (Tech Advantage)
  *******************************************************************************/
-package com.opcoach.e34.tools.io;
+package com.opcoach.e34tools.io;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -27,9 +27,9 @@ import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
-import com.opcoach.e34.tools.model.CustomExtensionPoint;
-import com.opcoach.e34.tools.model.CustomSchema;
-import com.opcoach.e34.tools.views.E4MigrationRegistry;
+import com.opcoach.e34tools.model.CustomExtensionPoint;
+import com.opcoach.e34tools.model.CustomSchema;
+import com.opcoach.e34tools.views.E4MigrationRegistry;
 
 public class CvsExport {
 

@@ -61,7 +61,7 @@
 
 	<!-- the modules that should be built together -->
 	<modules>
-		<module>../../com.opcoach.e34tools.core</module>
+		<module>../../com.opcoach.e34tools</module>
 		<module>../com.opcoach.e34tools.feature</module>
 		<module>../com.opcoach.e34tools.repository</module>
 	</modules>

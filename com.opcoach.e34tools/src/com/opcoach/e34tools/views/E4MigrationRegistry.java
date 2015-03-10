@@ -8,7 +8,7 @@
  * Contributors:
  *     OPCoach - initial API and implementation
  *******************************************************************************/
-package com.opcoach.e34.tools.views;
+package com.opcoach.e34tools.views;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -41,8 +41,8 @@ import org.eclipse.pde.internal.core.plugin.WorkspacePluginModelBase;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.pde.internal.core.schema.Schema;
 
-import com.opcoach.e34.tools.model.CustomExtensionPoint;
-import com.opcoach.e34.tools.model.CustomSchema;
+import com.opcoach.e34tools.model.CustomExtensionPoint;
+import com.opcoach.e34tools.model.CustomSchema;
 
 /**
  * This class computes all information displayed in E4 Migration Stat view, and

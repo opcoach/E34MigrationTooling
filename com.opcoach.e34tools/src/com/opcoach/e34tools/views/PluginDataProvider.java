@@ -8,7 +8,7 @@
  * Contributors:
  *     OPCoach - initial API and implementation
  *******************************************************************************/
-package com.opcoach.e34.tools.views;
+package com.opcoach.e34tools.views;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,9 +37,9 @@ import org.eclipse.swt.widgets.Display;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
-import com.opcoach.e34.tools.Migration34Activator;
-import com.opcoach.e34.tools.model.CustomExtensionPoint;
-import com.opcoach.e34.tools.model.CustomSchema;
+import com.opcoach.e34tools.Migration34Activator;
+import com.opcoach.e34tools.model.CustomExtensionPoint;
+import com.opcoach.e34tools.model.CustomSchema;
 
 /**
  * The column Label and content Provider used to display information in context

@@ -8,7 +8,7 @@
  * Contributors:
  *     Grégory COCHON (Tech Advantage)
  *******************************************************************************/
-package com.opcoach.e34.tools.views;
+package com.opcoach.e34tools.views;
 
 import java.util.Collection;
 
@@ -18,8 +18,8 @@ import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
-import com.opcoach.e34.tools.model.CustomExtensionPoint;
-import com.opcoach.e34.tools.model.CustomSchema;
+import com.opcoach.e34tools.model.CustomExtensionPoint;
+import com.opcoach.e34tools.model.CustomSchema;
 
 /**
  * Implements a count data provider to get the sum of a line Keep same behavior for color, fonts and
