@@ -69,7 +69,16 @@ public class E4MigrationRegistry implements IResourceChangeListener
 		customExtensionPoint = new HashSet<CustomExtensionPoint>();
 
 		// Listen to workspace to reparse extensions in case of change
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
+		try
+		{
+			IWorkspace ws = ResourcesPlugin.getWorkspace();
+			if (ws != null)
+				ws.addResourceChangeListener(this);
+		} catch (IllegalStateException ex)
+		{
+			// There is no workspace to listen.. we don't care (may be in test
+			// running)
+		}
 	}
 
 	public static E4MigrationRegistry getDefault()
@@ -198,7 +207,11 @@ public class E4MigrationRegistry implements IResourceChangeListener
 						break;
 					}
 				if (mustAdd)
+				{
 					extensionsToParse.add(ep);
+					System.out.println("Found this extensions to parse : " + ep.getUniqueIdentifier());
+
+				}
 			}
 		}
 
@@ -319,7 +332,7 @@ public class E4MigrationRegistry implements IResourceChangeListener
 			}
 			migrationData.put(getKey(ep, plugin), nbExtensions);
 			// System.out.println("Put : " + getKey(ep, plugin) +
-			// "    -> value =" + nbExtensions);
+			// " -> value =" + nbExtensions);
 
 			// Then compute number of element usage for this extension.
 			for (ISchemaElement se : getElementToParse(ep))

@@ -52,6 +52,8 @@ import com.opcoach.e34tools.model.CustomSchema;
 public class PluginDataProvider extends ColumnLabelProvider implements ITreeContentProvider
 {
 
+	private static final Object[] EMTPY_ARRAY = new Object[0];
+
 	private Font boldFont;
 
 	/**
@@ -93,6 +95,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			IExtensionPoint ep = (IExtensionPoint) parentElement;
 			String uniqueIdentifier = ep.getUniqueIdentifier();
 			ISchema schema = getSchema(uniqueIdentifier);
+			if (schema == null)
+				return EMTPY_ARRAY;
 
 			ISchemaElement extensionElement = null;
 			for (ISchemaElement e : schema.getElements())
@@ -111,18 +115,18 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			 * ISchemaElement e = (ISchemaElement) parentElement; return
 			 * e.getSchema().getCandidateChildren(e);
 			 */
-		}
-		else if (parentElement instanceof CustomExtensionPoint) {
-			CustomExtensionPoint cep = (CustomExtensionPoint)parentElement;
+		} else if (parentElement instanceof CustomExtensionPoint)
+		{
+			CustomExtensionPoint cep = (CustomExtensionPoint) parentElement;
 			Collection<CustomSchema> ses = cep.getSchemas();
 			return ses.toArray();
 		}
 
-		return null;
+		return EMTPY_ARRAY;
 
 	}
 
-	private ISchema getSchema(String uniqueIdentifier)
+	public ISchema getSchema(String uniqueIdentifier)
 	{
 		ISchema s = PDECore.getDefault().getSchemaRegistry().getSchema(uniqueIdentifier);
 		if (s == null)
@@ -144,6 +148,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public String getText(Object element)
 	{
+		if (element == null)
+			return "null object";
 
 		if (element instanceof IExtensionPoint)
 		{
@@ -161,15 +167,15 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			else
 				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(se, plugin);
 
-		}
-		else if (element instanceof CustomExtensionPoint) {
+		} else if (element instanceof CustomExtensionPoint)
+		{
 			CustomExtensionPoint cep = (CustomExtensionPoint) element;
 			if (plugin == null)
 				return cep.getUniqueId();
 			else
 				return "" + E4MigrationRegistry.getDefault().getInstanceNumber(cep, plugin);
-		}
-		else if (element instanceof CustomSchema) {
+		} else if (element instanceof CustomSchema)
+		{
 			CustomSchema cs = (CustomSchema) element;
 			if (plugin == null)
 				return cs.getId();
@@ -181,7 +187,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-    Color red = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
+	Color red = Display.getCurrent().getSystemColor(SWT.COLOR_RED);
 
 	@Override
 	public Color getForeground(Object element)
@@ -205,7 +211,8 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		if (element instanceof IExtensionPoint)
 		{
 			String uniqueIdentifier = ((IExtensionPoint) element).getUniqueIdentifier();
-			deprecated = getSchema(uniqueIdentifier).isDeperecated();
+			ISchema schema = getSchema(uniqueIdentifier);
+			deprecated = (schema != null) ? schema.isDeperecated() : false;
 		} else if (element instanceof ISchemaElement)
 		{
 			deprecated = ((ISchemaElement) element).isDeprecated();
@@ -223,10 +230,10 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 	@Override
 	public Image getImage(Object element)
 	{
-		if ((plugin == null) && isDeprecated(element)) 
-			return  Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_DEPRECATED);
-		
-		  return null;
+		if ((plugin == null) && isDeprecated(element))
+			return Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_DEPRECATED);
+
+		return null;
 
 	}
 
@@ -274,8 +281,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	
-
 	private void initFonts()
 	{
 		FontData[] fontData = Display.getCurrent().getSystemFont().getFontData();
@@ -283,25 +288,26 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		FontRegistry registry = JFaceResources.getFontRegistry();
 		boldFont = registry.getBold(fontName);
 	}
-	
-	
+
 	public class DeprecatedFilter extends ViewerFilter
 	{
 		static final int MODE_VIEW_ALL = 0;
 		static final int MODE_VIEW_ONLY_DEPRECATED = 1;
 		static final int MODE_VIEW_NO_DEPRECATED = 2;
-		
+
 		private int mode;
+
 		public void setMode(int m)
 		{
 			mode = m;
 		}
+
 		@Override
 		public boolean select(Viewer viewer, Object parentElement, Object element)
 		{
 			if (mode != MODE_VIEW_ALL)
 			{
-				if (mode ==  MODE_VIEW_ONLY_DEPRECATED)
+				if (mode == MODE_VIEW_ONLY_DEPRECATED)
 					return isDeprecated(element);
 				else if (mode == MODE_VIEW_NO_DEPRECATED)
 					return !isDeprecated(element);
@@ -309,8 +315,9 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			return true;
 		}
 	}
-	
-	/** Compute if all the line is with null values
+
+	/**
+	 * Compute if all the line is with null values
 	 * 
 	 * @author olivier
 	 *
@@ -322,7 +329,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		{
 			return isDeprecated(element);
 		}
-		
+
 	}
 
 }
