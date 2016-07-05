@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/com.opcoach.e34tools.feature_1.0.0.qualifier.jar" id="com.opcoach.e34tools.feature" version="1.0.0.qualifier">
+   <feature url="features/com.opcoach.e34tools.feature_1.1.0.qualifier.jar" id="com.opcoach.e34tools.feature" version="1.1.0.qualifier">
       <category name="com.opcoach.e34tools"/>
    </feature>
    <category-def name="com.opcoach.e34tools" label="Some tools to help in the E4 migration">
