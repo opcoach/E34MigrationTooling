@@ -8,7 +8,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<tycho-version>0.24.0</tycho-version>
+		<tycho-version>0.25.0</tycho-version>
 	</properties>
 
 	<repositories>
@@ -61,9 +61,9 @@
 
 	<!-- the modules that should be built together -->
 	<modules>
-		<module>../../com.opcoach.e34tools</module>
-		<module>../com.opcoach.e34tools.feature</module>
-		<module>../com.opcoach.e34tools.repository</module>
+		<module>com.opcoach.e34tools</module>
+		<module>build/com.opcoach.e34tools.feature</module>
+		<module>build/com.opcoach.e34tools.repository</module>
 	</modules>
 
 </project>
