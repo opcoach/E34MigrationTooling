@@ -38,6 +38,7 @@ import org.osgi.framework.Bundle;
 import org.osgi.framework.FrameworkUtil;
 
 import com.opcoach.e34tools.Migration34Activator;
+import com.opcoach.e34tools.helpers.SchemaUtil;
 import com.opcoach.e34tools.model.CustomExtensionPoint;
 import com.opcoach.e34tools.model.CustomSchema;
 
@@ -94,7 +95,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 			// Must search for elements defined in this extension point */
 			IExtensionPoint ep = (IExtensionPoint) parentElement;
 			String uniqueIdentifier = ep.getUniqueIdentifier();
-			ISchema schema = getSchema(uniqueIdentifier);
+			ISchema schema = SchemaUtil.getSchema(uniqueIdentifier);
 			if (schema == null)
 				return EMTPY_ARRAY;
 
@@ -126,19 +127,6 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 
 	}
 
-	public ISchema getSchema(String uniqueIdentifier)
-	{
-		ISchema s = PDECore.getDefault().getSchemaRegistry().getSchema(uniqueIdentifier);
-		if (s == null)
-		{
-			Bundle b = FrameworkUtil.getBundle(this.getClass());
-			IStatus st = new Status(IStatus.ERROR, b.getSymbolicName(), "Schema for " + uniqueIdentifier
-					+ " can not be found. Check if extension point schema are in the launch configuration");
-			Platform.getLog(b).log(st);
-			System.out.println(st.getMessage());
-		}
-		return s;
-	}
 
 	public void setPlugin(IPluginModelBase p)
 	{
@@ -211,7 +199,7 @@ public class PluginDataProvider extends ColumnLabelProvider implements ITreeCont
 		if (element instanceof IExtensionPoint)
 		{
 			String uniqueIdentifier = ((IExtensionPoint) element).getUniqueIdentifier();
-			ISchema schema = getSchema(uniqueIdentifier);
+			ISchema schema = SchemaUtil.getSchema(uniqueIdentifier);
 			deprecated = (schema != null) ? schema.isDeperecated() : false;
 		} else if (element instanceof ISchemaElement)
 		{
