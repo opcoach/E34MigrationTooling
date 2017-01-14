@@ -26,6 +26,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
@@ -50,6 +51,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -196,50 +198,35 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		ToolItem export = new ToolItem(tb, SWT.PUSH);
 		export.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXPORT));
 		export.setToolTipText("Export");
-		export.addSelectionListener(new SelectionListener()
+		export.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
 				{
 					export(tv);
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
-				}
+				}				
 			});
 
 		ToolItem expandAll = new ToolItem(tb, SWT.PUSH);
 		expandAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXPAND));
 		expandAll.setToolTipText("Expand all nodes");
-		expandAll.addSelectionListener(new SelectionListener()
+		expandAll.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
 				{
 					tv.expandAll();
 				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
-				}
 			});
 		ToolItem collapseAll = new ToolItem(tb, SWT.PUSH);
 		collapseAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_COLLAPSE));
 		collapseAll.setToolTipText("Collapse nodes");
-		collapseAll.addSelectionListener(new SelectionListener()
+		collapseAll.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
 				{
 					tv.collapseAll();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
 				}
 			});
 
@@ -249,7 +236,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		ToolItem ti = new ToolItem(tb, SWT.CHECK | SWT.BORDER);
 		ti.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_FILTER));
 		ti.setToolTipText("Filter empty lines");
-		ti.addSelectionListener(new SelectionListener()
+		ti.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
@@ -257,11 +244,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 					// filter empty lines...
 					filter.setFilterEmptyLines(!filter.getFilterEmptyLines());
 					tv.refresh();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
 				}
 			});
 
@@ -280,18 +262,13 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		ToolItem prefixTitle = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
 		prefixTitle.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_PREFIX_COLUMNTITLE));
 		prefixTitle.setToolTipText("Enter here prefixes to reduce the size of column titles");
-		prefixTitle.addSelectionListener(new SelectionListener()
+		prefixTitle.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
 				{
 					// ask for the prefix to remove for column names
 					askForColumnPrefixes();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
 				}
 			});
 
@@ -301,15 +278,11 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		ToolItem extItem = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
 		extItem.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_EXTENSION));
 		extItem.setToolTipText("Add a custom extensions points");
-		extItem.addSelectionListener(new SelectionListener()
+		extItem.addSelectionListener(new SelectionAdapter()
 			{
 				public void widgetSelected(SelectionEvent e)
 				{
 					askForAdditionalExtension();
-				}
-
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
 				}
 			});
 
@@ -320,17 +293,12 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		th.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_HELP));
 		th.setToolTipText(HELP_TXT);
 
-		th.addSelectionListener(new SelectionListener()
+		th.addSelectionListener(new SelectionAdapter()
 			{
 				@Override
 				public void widgetSelected(SelectionEvent e)
 				{
-					askForColumnPrefixes();
-				}
-
-				@Override
-				public void widgetDefaultSelected(SelectionEvent e)
-				{
+					MessageDialog.openInformation(Display.getCurrent().getActiveShell(), "Help", HELP_TXT);
 				}
 			});
 
