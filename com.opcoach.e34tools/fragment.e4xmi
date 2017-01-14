@@ -2,7 +2,7 @@
 <fragment:ModelFragments xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/descriptor/basic" xmlns:commands="http://www.eclipse.org/ui/2010/UIModel/application/commands" xmlns:fragment="http://www.eclipse.org/ui/2010/UIModel/fragment" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_0ARXANprEea7GIoGSwYQow">
   <imports xsi:type="commands:Command" xmi:id="_rz000Np9EeaY1_fczEP5IQ" elementId="org.eclipse.ui.browser.openBrowser"/>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_1AmLkNprEea7GIoGSwYQow" featurename="trimContributions" parentElementId="xpath:/">
-    <elements xsi:type="menu:TrimContribution" xmi:id="_NACDYNpwEea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.trimcontribution.0" parentId="org.eclipse.ui.main.toolbar" positionInParent="last">
+    <elements xsi:type="menu:TrimContribution" xmi:id="_NACDYNpwEea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.trimcontribution.0" parentId="org.eclipse.ui.main.toolbar" positionInParent="after=additions">
       <children xsi:type="menu:ToolBar" xmi:id="_Ng3fkNpwEea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.toolbar">
         <children xsi:type="menu:HandledToolItem" xmi:id="_BCbwUNptEea7GIoGSwYQow" elementId="com.opcoach.e34tools.handledtoolitem.statview" label="Stat view" iconURI="platform:/plugin/com.opcoach.e34tools/icons/TreeViewerComposite.gif" tooltip="Open the Migration Stat view" command="__q0SkNprEea7GIoGSwYQow">
           <parameters xmi:id="_Efa0kNptEea7GIoGSwYQow" elementId="com.opcoach.e34tools.parameter.0" name="com.opcoach.e34tools.parameter.view.id" value="com.opcoach.e34tools.migrationstatview"/>
