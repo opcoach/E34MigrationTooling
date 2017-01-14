@@ -41,6 +41,7 @@ import org.eclipse.pde.internal.core.plugin.WorkspacePluginModelBase;
 import org.eclipse.pde.internal.core.project.PDEProject;
 import org.eclipse.pde.internal.core.schema.Schema;
 
+import com.opcoach.e34tools.helpers.SchemaUtil;
 import com.opcoach.e34tools.model.CustomExtensionPoint;
 import com.opcoach.e34tools.model.CustomSchema;
 
@@ -62,6 +63,7 @@ public class E4MigrationRegistry implements IResourceChangeListener
 	private static E4MigrationRegistry INSTANCE;
 
 	private static boolean computed = false;
+	
 
 	private E4MigrationRegistry()
 	{
@@ -227,8 +229,14 @@ public class E4MigrationRegistry implements IResourceChangeListener
 
 	public ISchemaElement[] getElementToParse(IExtensionPoint ep)
 	{
-		ISchema schema = PDECore.getDefault().getSchemaRegistry().getSchema(ep.getUniqueIdentifier());
+		ISchema schema = SchemaUtil.getSchema(ep.getUniqueIdentifier()); // PDECore.getDefault().getSchemaRegistry().getSchema(ep.getUniqueIdentifier());
 
+		if (schema == null)
+		{
+			System.out.println("---> UNABLE TO LOAD SCHEMA FOR " + ep.getUniqueIdentifier());
+			return new ISchemaElement[0]; 
+		}
+		
 		// Search for extension element
 		ISchemaElement extensionElement = null;
 		for (ISchemaElement e : schema.getElements())

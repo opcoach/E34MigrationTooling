@@ -61,6 +61,8 @@ public class CvsExport {
             buffer.newLine();
             ISchema schema = SchemaUtil.getSchema(uniqueIdentifier);
 
+            if (schema != null)
+            {
             ISchemaElement extensionElement = null;
             for (ISchemaElement e : schema.getElements()) {
                 if ("extension".equals(e.getName())) {
@@ -83,6 +85,7 @@ public class CvsExport {
                 }
                 buffer.write(buf.toString());
                 buffer.newLine();
+            }
             }
 
         }
