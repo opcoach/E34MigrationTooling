@@ -1,26 +1,43 @@
 <?xml version="1.0" encoding="ASCII"?>
 <fragment:ModelFragments xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:basic="http://www.eclipse.org/ui/2010/UIModel/application/descriptor/basic" xmlns:commands="http://www.eclipse.org/ui/2010/UIModel/application/commands" xmlns:fragment="http://www.eclipse.org/ui/2010/UIModel/fragment" xmlns:menu="http://www.eclipse.org/ui/2010/UIModel/application/ui/menu" xmi:id="_0ARXANprEea7GIoGSwYQow">
+  <imports xsi:type="commands:Command" xmi:id="_rz000Np9EeaY1_fczEP5IQ" elementId="org.eclipse.ui.browser.openBrowser"/>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_1AmLkNprEea7GIoGSwYQow" featurename="trimContributions" parentElementId="xpath:/">
     <elements xsi:type="menu:TrimContribution" xmi:id="_NACDYNpwEea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.trimcontribution.0" parentId="org.eclipse.ui.main.toolbar" positionInParent="last">
       <children xsi:type="menu:ToolBar" xmi:id="_Ng3fkNpwEea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.toolbar">
         <children xsi:type="menu:HandledToolItem" xmi:id="_BCbwUNptEea7GIoGSwYQow" elementId="com.opcoach.e34tools.handledtoolitem.statview" label="Stat view" iconURI="platform:/plugin/com.opcoach.e34tools/icons/TreeViewerComposite.gif" tooltip="Open the Migration Stat view" command="__q0SkNprEea7GIoGSwYQow">
           <parameters xmi:id="_Efa0kNptEea7GIoGSwYQow" elementId="com.opcoach.e34tools.parameter.0" name="com.opcoach.e34tools.parameter.view.id" value="com.opcoach.e34tools.migrationstatview"/>
         </children>
+        <children xsi:type="menu:HandledToolItem" xmi:id="_wTeFYNp8EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.handledtoolitem.0" iconURI="platform:/plugin/com.opcoach.e34tools/icons/opcoach.png" tooltip="Open the OPCoach form to evaluate your migration" command="_rz000Np9EeaY1_fczEP5IQ">
+          <parameters xmi:id="_SR6rYNp-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.4" name="url" value="http://www.opcoach.com/migration-evaluation-form/"/>
+          <parameters xmi:id="_xNzxQNp9EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.1" name="browserId" value="opcoach"/>
+          <parameters xmi:id="_y4H-ANp9EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.2" name="name" value="OPCoach Migration Evaluation Form"/>
+          <parameters xmi:id="_5vNKkNp9EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.3" name="tooltip" value="OPCoach support"/>
+        </children>
       </children>
     </elements>
   </fragments>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_6qkEwNprEea7GIoGSwYQow" featurename="handlers" parentElementId="xpath:/">
     <elements xsi:type="commands:Handler" xmi:id="_8v4ygNprEea7GIoGSwYQow" elementId="com.opcoach.e34tools.handler.0" contributionURI="bundleclass://com.opcoach.e34tools/com.opcoach.e34tools.handlers.OpenView" command="__q0SkNprEea7GIoGSwYQow"/>
+    <elements xsi:type="commands:Handler" xmi:id="_2kFkUNp7EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.handler.1" contributionURI="bundleclass://com.opcoach.e34tools/com.opcoach.e34tools.handlers.OpenOPCoachForm" command="_3srkENp7EeaY1_fczEP5IQ"/>
   </fragments>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_9nl2kNprEea7GIoGSwYQow" featurename="commands" parentElementId="xpath:/" positionInList="">
     <elements xsi:type="commands:Command" xmi:id="__q0SkNprEea7GIoGSwYQow" elementId="com.opcoach.e34tools.command.openstatview" commandName="OpenView" description="Open a Migration Stat view">
       <parameters xmi:id="_gi1RcNpsEea7GIoGSwYQow" elementId="com.opcoach.e34tools.parameter.view.id" name="View ID" optional="false"/>
     </elements>
+    <elements xsi:type="commands:Command" xmi:id="_3srkENp7EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.command.openopcoachform" commandName="OpenOpcoachForm" description="Open the opcoach web site page with the form for migration"/>
   </fragments>
   <fragments xsi:type="fragment:StringModelFragment" xmi:id="_DkfS0NpsEea7GIoGSwYQow" featurename="descriptors" parentElementId="xpath:/">
     <elements xsi:type="basic:PartDescriptor" xmi:id="_FRb80NpsEea7GIoGSwYQow" elementId="com.opcoach.e34tools.migrationstatview" label="Migration Stats" iconURI="platform:/plugin/com.opcoach.e34tools/icons/TreeViewerComposite.gif" category="Plug-in Development" closeable="true" contributionURI="bundleclass://com.opcoach.e34tools/com.opcoach.e34tools.views.MigrationStatsE4View">
       <tags>View</tags>
       <tags>categoryTag:Plug-in Development</tags>
+      <toolbar xmi:id="_J0MnQNp1Eea2kLJ8O1jR2A" elementId="com.opcoach.e34tools.toolbar.0">
+        <children xsi:type="menu:HandledToolItem" xmi:id="_pKMDoNp-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.handledtoolitem.0" iconURI="platform:/plugin/com.opcoach.e34tools/icons/opcoach.png" tooltip="Open the OPCoach form to evaluate your migration" command="_rz000Np9EeaY1_fczEP5IQ">
+          <parameters xmi:id="_pKMDodp-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.4" name="url" value="http://www.opcoach.com/migration-evaluation-form/"/>
+          <parameters xmi:id="_pKMDotp-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.1" name="browserId" value="opcoach"/>
+          <parameters xmi:id="_pKMDo9p-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.2" name="name" value="OPCoach Migration Evaluation Form"/>
+          <parameters xmi:id="_pKMDpNp-EeaY1_fczEP5IQ" elementId="com.opcoach.e34tools.parameter.3" name="tooltip" value="OPCoach support"/>
+        </children>
+      </toolbar>
     </elements>
   </fragments>
 </fragment:ModelFragments>
