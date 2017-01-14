@@ -28,6 +28,7 @@ import javax.inject.Named;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.e4.core.di.annotations.Optional;
 import org.eclipse.e4.ui.di.Focus;
 import org.eclipse.e4.ui.services.IServiceConstants;
 import org.eclipse.jface.dialogs.Dialog;
@@ -72,17 +73,19 @@ import com.opcoach.e34tools.io.CvsExport;
 import com.opcoach.e34tools.model.CustomExtensionPoint;
 
 @SuppressWarnings("restriction")
-public class MigrationStatsE4View 
+public class MigrationStatsE4View
 {
 
 	private static final String COUNT_COLUMN = "Count";
 
-	private static final String HELP_TXT = "This window displays statistics regarding an E4 migration." + "\n\nUSAGE\n-------"
+	private static final String HELP_TXT = "This window displays statistics regarding an E4 migration."
+			+ "\n\nUSAGE\n-------"
 			+ "\nSelect one plugin or several plugins in your package explorer and get statistics."
-			+ "\nYOU MUST IMPORT THE latest org.eclipse.ui plugin (version 4.X) in your workspace" + "\n\nCONTENTS\n----------"
-			+ "\nThe first column contains the list of org.eclipse.ui extension points."
+			+ "\nYOU MUST IMPORT THE latest org.eclipse.ui plugin (version 4.X) in your workspace"
+			+ "\n\nCONTENTS\n----------" + "\nThe first column contains the list of org.eclipse.ui extension points."
 			+ "\nMiddle columns contains sums of extensions point occurency" + "\nLast column displays the sum."
-			+ "\nDeprecated extension points or elements are displayed in red." + "\nThe upper dashboards summarizes information"
+			+ "\nDeprecated extension points or elements are displayed in red."
+			+ "\nThe upper dashboards summarizes information"
 			+ "\nThe more red you have, the more difficult will be your migration." + "\n\nFILTERS\n-------"
 			+ "\nThe filter buttons can filter lines that have a nul total count, or deprecated elements";
 
@@ -108,11 +111,6 @@ public class MigrationStatsE4View
 	// selected plugins must not appear twice ! (Fix issue #8)
 	private HashSet<IPluginModelBase> currentSelectedPlugins;
 
-	public MigrationStatsE4View()
-	{
-		// TODO Auto-generated constructor stub
-	}
-
 
 	private Collection<IPluginModelBase> displayedPlugins = Collections.emptyList();
 
@@ -124,8 +122,8 @@ public class MigrationStatsE4View
 
 	private Group deprdashboard;
 
-	@PostConstruct
-	public void createPartControl(Composite parent)
+	@Inject
+	public MigrationStatsE4View(Composite parent)
 	{
 		parent.setLayout(new GridLayout(2, false));
 
@@ -185,7 +183,7 @@ public class MigrationStatsE4View
 				public void widgetSelected(SelectionEvent e)
 				{
 					export(tv);
-				}				
+				}
 			});
 
 		ToolItem expandAll = new ToolItem(tb, SWT.PUSH);
@@ -200,7 +198,8 @@ public class MigrationStatsE4View
 				}
 			});
 		ToolItem collapseAll = new ToolItem(tb, SWT.PUSH);
-		collapseAll.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_COLLAPSE));
+		collapseAll
+				.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_COLLAPSE));
 		collapseAll.setToolTipText("Collapse nodes");
 		collapseAll.addSelectionListener(new SelectionAdapter()
 			{
@@ -241,7 +240,8 @@ public class MigrationStatsE4View
 
 		// Create the prefix filter button
 		ToolItem prefixTitle = new ToolItem(tb, SWT.PUSH | SWT.BORDER);
-		prefixTitle.setImage(Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_PREFIX_COLUMNTITLE));
+		prefixTitle.setImage(
+				Migration34Activator.getDefault().getImageRegistry().get(Migration34Activator.IMG_PREFIX_COLUMNTITLE));
 		prefixTitle.setToolTipText("Enter here prefixes to reduce the size of column titles");
 		prefixTitle.addSelectionListener(new SelectionAdapter()
 			{
@@ -538,52 +538,53 @@ public class MigrationStatsE4View
 	}
 
 	@Inject
+	@Optional
 	public void selectionChanged(@Named(IServiceConstants.ACTIVE_SELECTION) IStructuredSelection ss)
 	{
+		if (ss == null)
+			return;
 
-					currentSelectedPlugins = new HashSet<IPluginModelBase>();
-			for (@SuppressWarnings("unchecked")
-			Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
+		currentSelectedPlugins = new HashSet<IPluginModelBase>();
+		for (@SuppressWarnings("unchecked")
+		Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
+		{
+			Object selected = it.next();
+			IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
+			if (proj != null)
 			{
-				Object selected = it.next();
-				IProject proj = (IProject) Platform.getAdapterManager().getAdapter(selected, IProject.class);
-				if (proj != null)
+				IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
+				if (m != null)
 				{
-					IPluginModelBase m = PDECore.getDefault().getModelManager().findModel(proj);
-					if (m != null)
+					currentSelectedPlugins.add(m);
+				} else
+				{
+					// Try to see if it is a feature.
+					IFeatureModel fm = PDECore.getDefault().getFeatureModelManager().getFeatureModel(proj);
+					if (fm != null)
 					{
-						currentSelectedPlugins.add(m);
-					} else
-					{
-						// Try to see if it is a feature.
-						IFeatureModel fm = PDECore.getDefault().getFeatureModelManager().getFeatureModel(proj);
-						if (fm != null)
+						for (IFeaturePlugin fp : fm.getFeature().getPlugins())
 						{
-							for (IFeaturePlugin fp : fm.getFeature().getPlugins())
-							{
-								IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
-								if (pm != null)
-									currentSelectedPlugins.add(pm);
-							}
+							IPluginModelBase pm = PDECore.getDefault().getModelManager().findModel(fp.getId());
+							if (pm != null)
+								currentSelectedPlugins.add(pm);
 						}
-
 					}
+
 				}
-			
-
-			mergeTableViewerColumns(currentSelectedPlugins);
-
-			if (tv != null)
-			{
-				// Must refresh without filter and then refilter...
-				tv.setFilters(new ViewerFilter[] {  });
-				tv.setFilters(new ViewerFilter[] { filter });
-
 			}
+		}
 
-			updateDashboard();
+		mergeTableViewerColumns(currentSelectedPlugins);
+
+		if (tv != null)
+		{
+			// Must refresh without filter and then refilter...
+			tv.setFilters(new ViewerFilter[] {});
+			tv.setFilters(new ViewerFilter[] { filter });
 
 		}
+
+		updateDashboard();
 
 	}
 
@@ -630,8 +631,8 @@ public class MigrationStatsE4View
 
 	}
 
-	private SelectionAdapter getHeaderSelectionAdapter(final TreeViewer viewer, final TreeColumn column, final int columnIndex,
-			final ILabelProvider textProvider)
+	private SelectionAdapter getHeaderSelectionAdapter(final TreeViewer viewer, final TreeColumn column,
+			final int columnIndex, final ILabelProvider textProvider)
 	{
 		SelectionAdapter selectionAdapter = new SelectionAdapter()
 			{
