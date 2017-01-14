@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 OPCoach.
+ * Copyright (c) 2017 OPCoach.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,15 +21,20 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
+import javax.inject.Named;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.e4.ui.di.Focus;
+import org.eclipse.e4.ui.services.IServiceConstants;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
@@ -44,7 +49,6 @@ import org.eclipse.pde.internal.core.ischema.ISchemaElement;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -62,25 +66,18 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
-import org.eclipse.ui.ISelectionListener;
-import org.eclipse.ui.IViewSite;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.part.ViewPart;
 
 import com.opcoach.e34tools.Migration34Activator;
 import com.opcoach.e34tools.io.CvsExport;
 import com.opcoach.e34tools.model.CustomExtensionPoint;
 
 @SuppressWarnings("restriction")
-public class MigrationStatsView extends ViewPart implements ISelectionListener
+public class MigrationStatsE4View 
 {
 
 	private static final String COUNT_COLUMN = "Count";
 
-	private static final String HELP_TXT = "This window displays statistics relative to a E4 migration." + "\n\nUSAGE\n-------"
+	private static final String HELP_TXT = "This window displays statistics regarding an E4 migration." + "\n\nUSAGE\n-------"
 			+ "\nSelect one plugin or several plugins in your package explorer and get statistics."
 			+ "\nYOU MUST IMPORT THE latest org.eclipse.ui plugin (version 4.X) in your workspace" + "\n\nCONTENTS\n----------"
 			+ "\nThe first column contains the list of org.eclipse.ui extension points."
@@ -108,32 +105,16 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private CountDataProvider countProvider;
 
-	private Group dp;
-
 	// selected plugins must not appear twice ! (Fix issue #8)
 	private HashSet<IPluginModelBase> currentSelectedPlugins;
 
-	public MigrationStatsView()
+	public MigrationStatsE4View()
 	{
 		// TODO Auto-generated constructor stub
 	}
 
-	@Override
-	public void init(IViewSite site) throws PartInitException
-	{
-		// TODO Auto-generated method stub
-		super.init(site);
-		site.getPage().addSelectionListener(this);
-	}
 
-	@Override
-	public void dispose()
-	{
-		getSite().getPage().removeSelectionListener(this);
-		super.dispose();
-	}
-
-	private Collection<IPluginModelBase> displayedPlugins = Collections.EMPTY_LIST;
+	private Collection<IPluginModelBase> displayedPlugins = Collections.emptyList();
 
 	private TreeViewer tv;
 
@@ -143,7 +124,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	private Group deprdashboard;
 
-	@Override
+	@PostConstruct
 	public void createPartControl(Composite parent)
 	{
 		parent.setLayout(new GridLayout(2, false));
@@ -307,7 +288,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private void askForColumnPrefixes()
 	{
 		// filter empty lines...
-		InputDialog dlg = new InputDialog(MigrationStatsView.this.getSite().getShell(), "Column name prefix filters",
+		InputDialog dlg = new InputDialog(Display.getCurrent().getActiveShell(), "Column name prefix filters",
 				"Enter a comma separated list of prefix filters to apply on column names", prefixFiltersString, null);
 
 		if (dlg.open() == Dialog.OK)
@@ -316,7 +297,6 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 			for (IPluginModelBase p : columnsCache.keySet())
 			{
-				String pluginName = p.getBundleDescription().getName();
 				TreeViewerColumn tc = columnsCache.get(p);
 				String newTitle = getColumnName(p);
 				if (!tc.getColumn().isDisposed() && !tc.getColumn().getText().equals(newTitle))
@@ -332,7 +312,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 	private void askForAdditionalExtension()
 	{
 		// ask for additional extension
-		InputDialog dlg = new InputDialog(MigrationStatsView.this.getSite().getShell(), "Custom extension statistics",
+		InputDialog dlg = new InputDialog(Display.getCurrent().getActiveShell(), "Custom extension statistics",
 				"Give the extension point as you want to follow in statistic", "", null);
 
 		if (dlg.open() == Dialog.OK)
@@ -362,8 +342,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 	protected void export(TreeViewer tv)
 	{
-		IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		Shell parent = workbenchWindow.getShell();
+		Shell parent = Display.getCurrent().getActiveShell();
 		FileDialog dialog = new FileDialog(parent, SWT.SAVE);
 		dialog.setFilterExtensions(new String[] { "*.csv" });
 		dialog.setOverwrite(true);
@@ -552,24 +531,17 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 		}
 	}
 
-	@Override
+	@Focus
 	public void setFocus()
 	{
 		tv.getControl().setFocus();
 	}
 
-	@Override
-	public void selectionChanged(IWorkbenchPart part, ISelection selection)
+	@Inject
+	public void selectionChanged(@Named(IServiceConstants.ACTIVE_SELECTION) IStructuredSelection ss)
 	{
 
-		if (selection.isEmpty())
-			return;
-
-		// Try to find selected plugins in selection
-		if (selection instanceof IStructuredSelection)
-		{
-			IStructuredSelection ss = (IStructuredSelection) selection;
-			currentSelectedPlugins = new HashSet<IPluginModelBase>();
+					currentSelectedPlugins = new HashSet<IPluginModelBase>();
 			for (@SuppressWarnings("unchecked")
 			Iterator<IPluginModelBase> it = ss.iterator(); it.hasNext();)
 			{
@@ -597,7 +569,7 @@ public class MigrationStatsView extends ViewPart implements ISelectionListener
 
 					}
 				}
-			}
+			
 
 			mergeTableViewerColumns(currentSelectedPlugins);
 

@@ -10,17 +10,17 @@
  *******************************************************************************/
 package com.opcoach.e34tools;
 
+import org.eclipse.core.runtime.Plugin;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 
 /**
  * The activator class controls the plug-in life cycle
- */
-public class Migration34Activator extends AbstractUIPlugin {
+ */ 
+public class Migration34Activator extends Plugin  {
 
     // The plug-in ID
     public static final String PLUGIN_ID = "com.opcoach.e34.tools"; //$NON-NLS-1$
@@ -40,9 +40,13 @@ public class Migration34Activator extends AbstractUIPlugin {
     public static final String IMG_EXTENSION = "icons/extensions_obj.gif";
 
     public static final String IMG_EXPORT = "icons/export.gif";
+    
+    public static final String IMG_OPCOACH = "icons/opcoach.png";
 
     // The shared instance
     private static Migration34Activator plugin;
+
+	private ImageRegistry imageRegistry;
 
     /**
      * The constructor
@@ -62,12 +66,9 @@ public class Migration34Activator extends AbstractUIPlugin {
         super.start(context);
         plugin = this;
 
-        displayFeatures();
     }
 
-    private void displayFeatures() {
-
-    }
+   
 
     /*
      * (non-Javadoc)
@@ -90,9 +91,16 @@ public class Migration34Activator extends AbstractUIPlugin {
     public static Migration34Activator getDefault() {
         return plugin;
     }
+    
+    public ImageRegistry getImageRegistry() {
+        if (imageRegistry == null) {
+            imageRegistry = new ImageRegistry();
+            initializeImageRegistry(imageRegistry);
+        }
+        return imageRegistry;
+    }
 
-    @Override
-    protected void initializeImageRegistry(ImageRegistry reg) {
+    private void initializeImageRegistry(ImageRegistry reg) {
         Bundle b = FrameworkUtil.getBundle(this.getClass());
 
         reg.put(IMG_DEPRECATED, ImageDescriptor.createFromURL(b.getEntry(IMG_DEPRECATED)));
@@ -103,6 +111,7 @@ public class Migration34Activator extends AbstractUIPlugin {
         reg.put(IMG_PREFIX_COLUMNTITLE, ImageDescriptor.createFromURL(b.getEntry(IMG_PREFIX_COLUMNTITLE)));
         reg.put(IMG_HELP, ImageDescriptor.createFromURL(b.getEntry(IMG_HELP)));
         reg.put(IMG_EXPORT, ImageDescriptor.createFromURL(b.getEntry(IMG_EXPORT)));
+        reg.put(IMG_OPCOACH, ImageDescriptor.createFromURL(b.getEntry(IMG_OPCOACH)));
 
     }
 }

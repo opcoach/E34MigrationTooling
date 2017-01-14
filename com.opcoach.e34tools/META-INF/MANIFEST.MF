@@ -5,9 +5,15 @@ Bundle-SymbolicName: com.opcoach.e34tools;singleton:=true
 Bundle-Version: 1.1.0.qualifier
 Bundle-Activator: com.opcoach.e34tools.Migration34Activator
 Bundle-Vendor: OPCoach
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
+Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.resources;bundle-version="3.8.101",
- org.eclipse.pde.core;bundle-version="3.9.1"
+ org.eclipse.pde.core;bundle-version="3.9.1",
+ org.eclipse.e4.ui.services;bundle-version="1.2.100",
+ org.eclipse.jface;bundle-version="3.12.1",
+ org.eclipse.e4.ui.di;bundle-version="1.1.100",
+ org.eclipse.e4.ui.model.workbench;bundle-version="1.2.0.v20160229-1459",
+ org.eclipse.e4.core.di,
+ org.eclipse.e4.ui.workbench;bundle-version="1.4.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Import-Package: javax.inject;version="1.0.0"
 Bundle-ActivationPolicy: lazy
