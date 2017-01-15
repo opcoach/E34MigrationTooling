@@ -8,7 +8,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<tycho-version>0.25.0</tycho-version>
+		<tycho-version>0.26.0</tycho-version>
 	</properties>
 
 	<repositories>
@@ -34,13 +34,9 @@
 				<artifactId>target-platform-configuration</artifactId>
 				<version>${tycho-version}</version>
 				<configuration>
-				<!-- 
-					<dependency-resolution>
-						<optionalDependencies>ignore</optionalDependencies>
-					</dependency-resolution>
-				 -->
+					<!-- <dependency-resolution> <optionalDependencies>ignore</optionalDependencies> 
+						</dependency-resolution> -->
 					<environments>
-
 						<environment>
 							<os>macosx</os>
 							<ws>cocoa</ws>
@@ -51,11 +47,14 @@
 							<ws>win32</ws>
 							<arch>x86_64</arch>
 						</environment>
-
+						<environment>
+							<os>linux</os>
+							<ws>gtk</ws>
+							<arch>x86_64</arch>
+						</environment>
 					</environments>
 				</configuration>
 			</plugin>
-
 		</plugins>
 	</build>
 
