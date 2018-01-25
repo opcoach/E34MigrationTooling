@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/opcoach/E34MigrationTooling.svg?branch=master)](https://travis-ci.org/opcoach/E34MigrationTooling)
+
 E34MigrationTooling
 ===================
 
