@@ -3,6 +3,9 @@
    <feature url="features/com.opcoach.e34tools.feature_1.2.0.qualifier.jar" id="com.opcoach.e34tools.feature" version="1.2.0.qualifier">
       <category name="com.opcoach.e34tools"/>
    </feature>
+   <feature id="com.opcoach.e34tools.feature.source">
+      <category name="com.opcoach.e34tools"/>
+   </feature>
    <category-def name="com.opcoach.e34tools" label="Some tools to help in the E4 migration">
       <description>
          This category contains a feature with a plugin to display some statistics to help in E4 migration.
