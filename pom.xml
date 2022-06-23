@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.opcoach.e34tools</groupId>
 	<artifactId>com.opcoach.e34tools.parent</artifactId>
@@ -8,14 +7,14 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<tycho-version>2.5.0</tycho-version>
+		<tycho-version>2.7.3</tycho-version>
 	</properties>
 
 	<repositories>
 		<repository>
 			<id>Simrel0921</id>
 			<layout>p2</layout>
-			<url>http://download.eclipse.org/releases/2021-12</url>
+			<url>http://download.eclipse.org/releases/2022-03</url>
 		</repository>
 	</repositories>
 
@@ -74,7 +73,7 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin> 
+			</plugin>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-p2-plugin</artifactId>
@@ -89,6 +88,18 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Use this config to remove the pom files from delivery ! -->
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-packaging-plugin</artifactId>
+				<version>${tycho-version}</version>
+				<configuration>
+					<archive>
+						<addMavenDescriptor>false</addMavenDescriptor>
+					</archive>
+				</configuration>
+			</plugin>
+
 		</plugins>
 	</build>
 
